@@ -2,20 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Default (Light Mode) */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #111111;
+  --secondary-text: #444444;
+  --heading-color: #000000;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Ensure Dark Mode Applies */
+.dark {
+  --background: #0a0a0a;
+  --foreground: #e0e0e0;
+  --secondary-text: #bbbbbb;
+  --heading-color: #ffffff;
 }
 
+/* Apply the colors */
 body {
   color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--background);
+  font-family: "Inter", Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
 }
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--heading-color);
+  font-weight: 700;
+}
+
+/* Paragraphs */
+p {
+  color: var(--secondary-text);
+}
+
+/* Links */
+a {
+  color: var(--heading-color);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+/* Button Improvements */
+button {
+  background-color: #0070f3;
+  color: #ffffff;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: background 0.3s ease;
+}
+
+button:hover {
+  background-color: #0056c0;
+}
+
