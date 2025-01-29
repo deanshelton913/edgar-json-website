@@ -8,7 +8,7 @@ export default function Home() {
 					Get structured SEC filings instantly.
 				</p>
 				<a
-					href="/dashboard"
+					href="/api-key"
 					className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-md shadow-md hover:bg-blue-700 transition inline-block"
 				>
 					Get API Key for $1/Month
@@ -269,7 +269,7 @@ FILER:
 					Get instant access to structured SEC filings.
 				</p>
 				<a
-					href="/dashboard"
+					href="/api-key"
 					className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-md shadow-md hover:bg-blue-700 transition inline-block"
 				>
 					Get Started for $1/Month

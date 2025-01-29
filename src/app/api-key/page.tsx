@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { ContactUs } from "../components/ContactUs";
 
-export default function Dashboard() {
+export default function ApiKey() {
 	return (
 		<div className="p-8 max-w-2xl mx-auto bg-white shadow-xl rounded-lg mt-12 text-center">
 			{/* API Key Header */}

@@ -92,11 +92,8 @@ export default function RootLayout({
 
 					{/* Navigation Links */}
 					<div className="space-x-6">
-						<Link
-							href="/dashboard"
-							className="text-gray-700 hover:text-blue-600"
-						>
-							Dashboard
+						<Link href="/api-key" className="text-gray-700 hover:text-blue-600">
+							Api Key
 						</Link>
 						<Link href="/docs" className="text-gray-700 hover:text-blue-600">
 							Docs

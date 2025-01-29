@@ -112,7 +112,7 @@ export default function Docs() {
 					If you don’t have one yet, <strong>get your key here:</strong>
 				</p>
 				<a
-					href="/dashboard"
+					href="/api-key"
 					className="mt-3 inline-block px-6 py-3 bg-blue-500 text-white font-semibold rounded-md shadow-md hover:bg-blue-600 transition"
 				>
 					Get Your API Key 🔑
