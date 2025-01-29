@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ContactUs } from "../components/ContactUs";
 
 export default function Dashboard() {
 	return (
@@ -74,16 +75,7 @@ export default function Dashboard() {
 				<p className="text-gray-500 text-sm mt-2">Appreciate the support! 🙌</p>
 			</div>
 
-			{/* Contact Us Section */}
-			<div className="mt-8 p-4 bg-gray-50 border-t border-gray-200 rounded-md shadow-md">
-				<h3 className="text-lg font-semibold text-gray-900">📩 Need Help?</h3>
-				<p className="text-gray-600 text-sm mt-2">
-					If you have any questions, feel free to reach out:
-				</p>
-				<p className="text-blue-600 font-semibold text-lg mt-2">
-					deanshelton913@gmail.com
-				</p>
-			</div>
+			<ContactUs />
 		</div>
 	);
 }

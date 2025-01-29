@@ -211,7 +211,7 @@ FILER:
 
 			<section className="py-12 px-6 max-w-5xl text-center">
 				<h2 className="text-4xl font-bold  text-gray-900">
-					Why Developers Love Our API 🚀
+					Why Developers Love This API 🚀
 				</h2>
 				<p className="text-lg text-gray-700 mt-3">
 					Get SEC filings in a format you can actually use.
