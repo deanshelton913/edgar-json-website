@@ -322,7 +322,7 @@ export default function Docs() {
 						<strong>Converted API URL:</strong>
 					</p>
 					<p className=" text-sm break-all">
-						https://edgar-json.com/filings/
+						https://api.edgar-json.com/filings/
 						<span className="text-green-600">
 							312070/000095010325001140/0000950103-25-001140
 						</span>
