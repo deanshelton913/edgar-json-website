@@ -38,8 +38,7 @@ export default function Home() {
 								fontSize: "10px",
 							}}
 						>
-							{`
-<SEC-DOCUMENT>0001104659-25-006631.txt : 20250128
+							{`<SEC-DOCUMENT>0001104659-25-006631.txt : 20250128
 <SEC-HEADER>0001104659-25-006631.hdr.sgml : 20250128
 <ACCEPTANCE-DATETIME>20250128140548
 ACCESSION NUMBER:		0001104659-25-006631
@@ -85,8 +84,7 @@ FILER:
 							}}
 						>
 							{/* Placeholder for JSON Output */}
-							{`
-{
+							{`{
     "acceptanceDatetime": "20250128140548",
     "accessionNumber": "0001104659-25-006631",
     "conformedSubmissionType": "SF-3/A",
