@@ -82,7 +82,7 @@ const TermsOfUse = () => {
 					</li>
 					<li>
 						Use the API in a manner that imposes an unreasonable load on the
-						Provider’s infrastructure;
+						Provider&apos;s infrastructure;
 					</li>
 					<li>
 						Distribute, sublicense, or resell access to the API without prior
@@ -116,10 +116,10 @@ const TermsOfUse = () => {
 					encouraged to review these Terms periodically.
 				</p>
 				<p>
-					(b) Termination: The Provider may suspend or terminate User’s access
-					to the API at any time, with or without cause, and without liability.
-					Upon termination, all rights granted to the User under these Terms
-					shall cease immediately.
+					(b) Termination: The Provider may suspend or terminate User&apos;s
+					access to the API at any time, with or without cause, and without
+					liability. Upon termination, all rights granted to the User under
+					these Terms shall cease immediately.
 				</p>
 			</div>
 
