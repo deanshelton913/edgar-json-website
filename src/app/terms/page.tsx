@@ -11,11 +11,12 @@ const TermsOfUse = () => {
 			<div className="mb-6">
 				<h2 className="text-xl font-semibold mb-2">1. ACCEPTANCE OF TERMS</h2>
 				<p>
-					By accessing or using the EDGAR Parsing API ("API"), you ("User")
-					agree to be bound by these Terms of Use ("Terms"). If you do not agree
-					to these Terms, do not use the API. The provider ("Provider") reserves
-					the right to modify these Terms at any time, and continued use of the
-					API constitutes acceptance of any such modifications.
+					By accessing or using the EDGAR Parsing API (the &quot;API&quot;), you
+					(the &quot;User&quot;) agree to be bound by these Terms of Use
+					(&quot;Terms&quot;). If you do not agree to these Terms, do not use
+					the API. The provider (&quot;Provider&quot;) reserves the right to
+					modify these Terms at any time, and continued use of the API
+					constitutes acceptance of any such modifications.
 				</p>
 			</div>
 
@@ -24,12 +25,13 @@ const TermsOfUse = () => {
 					2. DISCLAIMER OF WARRANTIES
 				</h2>
 				<p>
-					THE API IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF
-					ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-					IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
-					PURPOSE, NON-INFRINGEMENT, OR ACCURACY. THE PROVIDER DOES NOT
-					GUARANTEE THAT THE API WILL BE ERROR-FREE, UNINTERRUPTED, OR FREE FROM
-					HARMFUL COMPONENTS. USERS RELY ON THE DATA PROVIDED AT THEIR OWN RISK.
+					THE API IS PROVIDED &quot;AS IS&quot; AND &quot;AS AVAILABLE&quot;
+					WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING
+					BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR
+					A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR ACCURACY. THE PROVIDER DOES
+					NOT GUARANTEE THAT THE API WILL BE ERROR-FREE, UNINTERRUPTED, OR FREE
+					FROM HARMFUL COMPONENTS. USERS RELY ON THE DATA PROVIDED AT THEIR OWN
+					RISK.
 				</p>
 			</div>
 
@@ -43,9 +45,9 @@ const TermsOfUse = () => {
 					OR EXEMPLARY DAMAGES (INCLUDING BUT NOT LIMITED TO LOSS OF PROFITS,
 					DATA, OR BUSINESS INTERRUPTION) ARISING FROM OR RELATED TO THE USE OR
 					INABILITY TO USE THE API, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
-					DAMAGES. IN NO EVENT SHALL THE PROVIDER’S TOTAL LIABILITY EXCEED THE
-					AMOUNT PAID BY THE USER FOR ACCESS TO THE API IN THE SIX (6) MONTHS
-					PRECEDING THE CLAIM.
+					DAMAGES. IN NO EVENT SHALL THE PROVIDER&apos;S TOTAL LIABILITY EXCEED
+					THE AMOUNT PAID BY THE USER FOR ACCESS TO THE API IN THE SIX (6)
+					MONTHS PRECEDING THE CLAIM.
 				</p>
 			</div>
 
@@ -55,9 +57,9 @@ const TermsOfUse = () => {
 					User agrees to indemnify, defend, and hold harmless the Provider, its
 					affiliates, officers, directors, employees, and agents from any and
 					all claims, liabilities, damages, losses, costs, and expenses
-					(including reasonable attorneys' fees) arising from User’s use of the
-					API, User’s violation of these Terms, or User’s infringement of any
-					third-party rights.
+					(including reasonable attorneys&apos; fees) arising from User&apos;s
+					use of the API, User&apos;s violation of these Terms, or User&apos;s
+					infringement of any third-party rights.
 				</p>
 			</div>
 
