@@ -30,7 +30,10 @@ export default function Home() {
 						<h3 className="text-xl font-bold mb-3 text-gray-100">
 							SEC Raw Filing (TXT)
 						</h3>
-						<pre className="text-gray-300 overflow-auto max-h-56 p-3 bg-gray-800 rounded">
+						<pre
+							className="text-gray-300 overflow-auto max-h-56 p-3 bg-gray-800 rounded"
+							style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+						>
 							{`
 <SEC-DOCUMENT>0001104659-25-006631.txt : 20250128
 <SEC-HEADER>0001104659-25-006631.hdr.sgml : 20250128
@@ -69,7 +72,10 @@ FILER:
 						<h3 className="text-xl font-bold mb-3 text-gray-100">
 							Structured JSON Output
 						</h3>
-						<pre className="text-gray-300 overflow-auto max-h-56 p-3 bg-gray-800 rounded">
+						<pre
+							className="text-gray-300 overflow-auto max-h-56 p-3 bg-gray-800 rounded"
+							style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+						>
 							{/* Placeholder for JSON Output */}
 							{`
 {
