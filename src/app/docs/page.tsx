@@ -15,11 +15,11 @@ export default function Docs() {
 	const [copied1, setCopied1] = useState(false);
 	const [copied2, setCopied2] = useState(false);
 	const apiExample1 = `curl -H 'Authorization: demo-key' \\
-  "https://edgar-json.com/filings/312070/000095010325001140/0000950103-25-001140.json"`;
+  "https://api.edgar-json.com/filings/312070/000095010325001140/0000950103-25-001140.json"`;
 
 	const apiExample2 = `curl -H "Authorization: demo-key" \
      -X GET \   
-     "https://edgar-json.com/312070/000095010325001140/0000950103-25-001140/image_001.jpg" --output /tmp/image_001.jpg`;
+     "https://api.edgar-json.com/filings/312070/000095010325001140/0000950103-25-001140/image_001.jpg" --output /tmp/image_001.jpg`;
 	const handleCopy1 = () => {
 		navigator.clipboard.writeText(apiExample1);
 		setCopied1(true);
