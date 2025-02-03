@@ -12,14 +12,23 @@ import { ContactUs } from "../components/ContactUs";
 
 export default function Docs() {
 	// Copy functionality
-	const [copied, setCopied] = useState(false);
-	const apiExample = `curl -H 'Authorization:123456' \\
-  "https://darkbastion.com/edgar?filingId=1043000/000162828025003035/0001628280-25-003035.json"`;
+	const [copied1, setCopied1] = useState(false);
+	const [copied2, setCopied2] = useState(false);
+	const apiExample1 = `curl -H 'Authorization: demo-key' \\
+  "https://edgar-json.com/filings/312070/000095010325001140/0000950103-25-001140.json"`;
 
-	const handleCopy = () => {
-		navigator.clipboard.writeText(apiExample);
-		setCopied(true);
-		setTimeout(() => setCopied(false), 2000);
+	const apiExample2 = `curl -H "Authorization: demo-key" \
+     -X GET \   
+     "https://edgar-json.com/312070/000095010325001140/0000950103-25-001140/image_001.jpg" --output /tmp/image_001.jpg`;
+	const handleCopy1 = () => {
+		navigator.clipboard.writeText(apiExample1);
+		setCopied1(true);
+		setTimeout(() => setCopied1(false), 2000);
+	};
+	const handleCopy2 = () => {
+		navigator.clipboard.writeText(apiExample1);
+		setCopied2(true);
+		setTimeout(() => setCopied2(false), 2000);
 	};
 
 	// Accordion state for Form 4 example
@@ -283,7 +292,7 @@ export default function Docs() {
 				📄 EDGAR JSON API Docs
 			</h1>
 			<p className="text-gray-600 mt-4 text-lg text-center">
-				Convert SEC filings into structured JSON with a simple API call.
+				Retrieve SEC EDGAR filings as structured JSON with a simple API call.
 			</p>
 
 			{/* How it Works */}
@@ -302,14 +311,22 @@ export default function Docs() {
 					<p className="text-gray-800 font-mono text-sm">
 						<strong>SEC Filing URL:</strong>
 					</p>
-					<p className="text-blue-600 text-sm break-all">
-						https://www.sec.gov/Archives/edgar/data/2001260/000149315225004050/0001493152-25-004050-index.htm
+					<p className="text-sm break-all">
+						https://www.sec.gov/Archives/edgar/data/
+						<span className="text-green-600">
+							312070/000095010325001140/0000950103-25-001140
+						</span>
+						-index.htm
 					</p>
 					<p className="text-gray-800 font-mono text-sm mt-2">
 						<strong>Converted API URL:</strong>
 					</p>
-					<p className="text-green-600 text-sm break-all">
-						https://darkbastion.com/edgar?filingId=2001260/000149315225004050/0001493152-25-004050.json
+					<p className=" text-sm break-all">
+						https://edgar-json.com/filings/
+						<span className="text-green-600">
+							312070/000095010325001140/0000950103-25-001140
+						</span>
+						.json
 					</p>
 				</div>
 			</div>
@@ -326,10 +343,10 @@ export default function Docs() {
 
 				{/* Highlighted Code Block */}
 				<div className="relative mt-4 border border-gray-400 bg-gray-900 rounded-lg shadow-lg">
-					<Highlight code={apiExample} language="bash" theme={themes.github}>
+					<Highlight code={apiExample1} language="bash" theme={themes.github}>
 						{({ className, style, tokens, getLineProps, getTokenProps }) => (
 							<pre
-								className={`${className} p-5 rounded-md text-white overflow-x-auto whitespace-pre-wrap`}
+								className={`${className} p-5 rounded-md text-white overflow-x-auto whitespace-pre-wrap text-sm`}
 								style={style}
 							>
 								{tokens.map((line, i) => (
@@ -346,10 +363,91 @@ export default function Docs() {
 					{/* Copy Button */}
 					<button
 						type="button"
-						onClick={handleCopy}
+						onClick={handleCopy1}
 						className="absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded-md flex items-center"
 					>
-						{copied ? (
+						{copied1 ? (
+							<>
+								<CheckIcon className="h-4 w-4 mr-1" /> Copied!
+							</>
+						) : (
+							<>
+								<ClipboardIcon className="h-4 w-4 mr-1" /> Copy
+							</>
+						)}
+					</button>
+				</div>
+				{/* Form 4 Accordion */}
+				<div className="mt-6">
+					<button
+						type="button"
+						className="flex items-center justify-between w-full px-4 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-100 focus:outline-none"
+						onClick={() => setShowForm4(!showForm4)}
+					>
+						<span className="font-medium text-gray-900">
+							Show Example JSON filing
+						</span>
+						<ChevronDownIcon
+							className={`h-5 w-5 transform transition-transform duration-200 ${
+								showForm4 ? "rotate-180" : ""
+							}`}
+						/>
+					</button>
+
+					{showForm4 && (
+						<div className="mt-2 border border-gray-300 rounded-md bg-gray-100 overflow-x-auto">
+							<Highlight
+								code={form4ExampleJson}
+								language="json"
+								theme={themes.github}
+							>
+								{({
+									className,
+									style,
+									tokens,
+									getLineProps,
+									getTokenProps,
+								}) => (
+									<pre className={`${className} p-4 text-sm`} style={style}>
+										{tokens.map((line, i) => (
+											<div key={i} {...getLineProps({ line })}>
+												{line.map((token, key) => (
+													<span key={key} {...getTokenProps({ token })} />
+												))}
+											</div>
+										))}
+									</pre>
+								)}
+							</Highlight>
+						</div>
+					)}
+				</div>
+				{/* Highlighted Code Block */}
+				<div className="relative mt-4 border border-gray-400 bg-gray-900 rounded-lg shadow-lg">
+					<Highlight code={apiExample2} language="bash" theme={themes.github}>
+						{({ className, style, tokens, getLineProps, getTokenProps }) => (
+							<pre
+								className={`${className} p-5 rounded-md text-white overflow-x-auto whitespace-pre-wrap text-sm`}
+								style={style}
+							>
+								{tokens.map((line, i) => (
+									<div key={i} {...getLineProps({ line })}>
+										{line.map((token, key) => (
+											<span key={key} {...getTokenProps({ token })} />
+										))}
+									</div>
+								))}
+							</pre>
+						)}
+					</Highlight>
+
+					{/* Copy Button */}
+					<button
+						type="button"
+						onClick={handleCopy2}
+						className="absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded-md flex items-center"
+					>
+						{copied2 ? (
 							<>
 								<CheckIcon className="h-4 w-4 mr-1" /> Copied!
 							</>
@@ -399,68 +497,6 @@ export default function Docs() {
 					Click on any document type below to expand its details and see a
 					simplified JSON example.
 				</p>
-
-				{/* Form 4 Accordion */}
-				<div className="mt-6">
-					<button
-						type="button"
-						className="flex items-center justify-between w-full px-4 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-100 focus:outline-none"
-						onClick={() => setShowForm4(!showForm4)}
-					>
-						<span className="font-medium text-gray-900">
-							Example: Form 4 Parsed Document
-						</span>
-						<ChevronDownIcon
-							className={`h-5 w-5 transform transition-transform duration-200 ${
-								showForm4 ? "rotate-180" : ""
-							}`}
-						/>
-					</button>
-
-					{showForm4 && (
-						<div className="p-4 border border-t-0 border-gray-300 rounded-b-md bg-white">
-							<h3 className="text-lg font-semibold text-gray-900">
-								What is Form 4?
-							</h3>
-							<p className="text-gray-700 mt-2">
-								Form 4 is the SEC form used to report changes in beneficial
-								ownership of securities by corporate insiders.
-							</p>
-
-							<h4 className="text-md font-semibold text-gray-900 mt-4">
-								Example JSON
-							</h4>
-							<p className="text-gray-700 mt-2">
-								A simplified Form 4 JSON response might look like this:
-							</p>
-							<div className="mt-2 border border-gray-300 rounded-md bg-gray-100 overflow-x-auto">
-								<Highlight
-									code={form4ExampleJson}
-									language="json"
-									theme={themes.github}
-								>
-									{({
-										className,
-										style,
-										tokens,
-										getLineProps,
-										getTokenProps,
-									}) => (
-										<pre className={`${className} p-4 text-sm`} style={style}>
-											{tokens.map((line, i) => (
-												<div key={i} {...getLineProps({ line })}>
-													{line.map((token, key) => (
-														<span key={key} {...getTokenProps({ token })} />
-													))}
-												</div>
-											))}
-										</pre>
-									)}
-								</Highlight>
-							</div>
-						</div>
-					)}
-				</div>
 
 				{/* Add more document types (e.g., Form 8-K, Form 10-Q, etc.) here */}
 			</section>
