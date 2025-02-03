@@ -31,8 +31,12 @@ export default function Home() {
 							SEC Raw Filing (TXT)
 						</h3>
 						<pre
-							className="text-gray-300 overflow-auto max-h-56 p-3 bg-gray-800 rounded"
-							style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+							className="text-gray-300 overflow-auto max-h-56 p-3 bg-gray-800 rounded text-xxs"
+							style={{
+								scrollbarWidth: "none",
+								msOverflowStyle: "none",
+								fontSize: "10px",
+							}}
 						>
 							{`
 <SEC-DOCUMENT>0001104659-25-006631.txt : 20250128
@@ -73,8 +77,12 @@ FILER:
 							Structured JSON Output
 						</h3>
 						<pre
-							className="text-gray-300 overflow-auto max-h-56 p-3 bg-gray-800 rounded"
-							style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+							className="text-gray-300 overflow-auto max-h-56 p-3 bg-gray-800 rounded text-xxs"
+							style={{
+								scrollbarWidth: "none",
+								msOverflowStyle: "none",
+								fontSize: "10px",
+							}}
 						>
 							{/* Placeholder for JSON Output */}
 							{`
