@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Link from "next/link";
+import Navigation from "./components/Navigation";
 
 export const metadata: Metadata = {
 	title: "EDGAR API - Convert SEC Filings to JSON Instantly",
@@ -84,25 +84,8 @@ export default function RootLayout({
 			</head>
 
 			<body className="font-sans bg-gray-50">
-				{/* Navbar */}
-				<nav className="p-4 bg-white shadow-md flex items-center justify-between">
-					<Link href="/" className="text-2xl font-bold text-gray-900">
-						EDGAR API
-					</Link>
-
-					{/* Navigation Links */}
-					<div className="space-x-6">
-						<Link href="/api-key" className="text-gray-700 hover:text-blue-600">
-							Api Key
-						</Link>
-						<Link href="/docs" className="text-gray-700 hover:text-blue-600">
-							Docs
-						</Link>
-						<Link href="/terms" className="text-gray-700 hover:text-blue-600">
-							Terms
-						</Link>
-					</div>
-				</nav>
+				{/* Navigation */}
+				<Navigation />
 
 				{/* Page Content */}
 				<main>{children}</main>

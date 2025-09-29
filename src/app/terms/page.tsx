@@ -156,7 +156,7 @@ const TermsOfUse = () => {
 
 			<p className="mt-6">
 				For any questions regarding these Terms, please contact
-				edgar.brutishly148@passinbox.com.
+				dean@mukilteotech.com.
 			</p>
 		</div>
 	);

@@ -5,7 +5,7 @@ export const ContactUs = () => (
 			If you have any questions, reach out at my forward address:
 		</p>
 		<p className="text-blue-600 font-semibold text-lg mt-2">
-			edgar.brutishly148@passinbox.com
+			dean@mukilteotech.com
 		</p>
 	</div>
 );

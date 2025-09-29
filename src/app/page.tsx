@@ -1,4 +1,39 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import GoogleLoginButton from './components/GoogleLoginButton';
+
 export default function Home() {
+	const [isAuthenticated, setIsAuthenticated] = useState(false);
+	const [showLoginModal, setShowLoginModal] = useState(false);
+	const [isLoading, setIsLoading] = useState(true);
+
+	useEffect(() => {
+		checkAuthStatus();
+	}, []);
+
+	const checkAuthStatus = async () => {
+		try {
+			const response = await fetch('/api/auth/user');
+			if (response.ok) {
+				const data = await response.json();
+				setIsAuthenticated(data.authenticated);
+			}
+		} catch (error) {
+			console.error('Error checking auth status:', error);
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	const handleCTAClick = () => {
+		if (isAuthenticated) {
+			window.location.href = '/api-key';
+		} else {
+			setShowLoginModal(true);
+		}
+	};
+
 	return (
 		<main className="flex flex-col items-center justify-center min-h-screen bg-gray-100 px-4 space-y-4">
 			{/* Hero Section */}
@@ -7,12 +42,13 @@ export default function Home() {
 				<p className="text-lg text-gray-700 max-w-lg">
 					Get structured SEC filings instantly.
 				</p>
-				<a
-					href="/api-key"
-					className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-md shadow-md hover:bg-blue-700 transition inline-block"
+				<button
+					onClick={handleCTAClick}
+					disabled={isLoading}
+					className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-md shadow-md hover:bg-blue-700 transition inline-block disabled:opacity-50"
 				>
-					Get API Key for $1/Month
-				</a>
+					{isLoading ? 'Loading...' : '🚀 Get Your FREE API Key Now!'}
+				</button>
 			</section>
 
 			{/* Example Comparison Section */}
@@ -280,13 +316,46 @@ FILER:
 				<p className="text-gray-700 mt-2">
 					Get instant access to structured SEC filings.
 				</p>
-				<a
-					href="/api-key"
-					className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-md shadow-md hover:bg-blue-700 transition inline-block"
+				<button
+					onClick={handleCTAClick}
+					disabled={isLoading}
+					className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-md shadow-md hover:bg-blue-700 transition inline-block disabled:opacity-50"
 				>
-					Get Started for $1/Month
-				</a>
+					{isLoading ? 'Loading...' : '🎯 Start Building with FREE API Key'}
+				</button>
 			</section>
+
+			{/* Login Modal */}
+			{showLoginModal && (
+				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+					<div className="bg-white rounded-lg p-8 max-w-md mx-4 shadow-xl relative">
+						{/* X Button */}
+						<button
+							onClick={() => setShowLoginModal(false)}
+							className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 transition p-1 bg-transparent border-none outline-none"
+						>
+							<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+							</svg>
+						</button>
+						
+						<div className="text-center">
+							<div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+								🔑
+							</div>
+							<h3 className="text-2xl font-bold text-gray-900 mb-2">
+								Just One Thing First
+							</h3>
+							<p className="text-gray-600 mb-6">
+								Sign in with Google and we&apos;ll get your FREE API key ready in seconds!
+							</p>
+							<div className="flex justify-center">
+								<GoogleLoginButton />
+							</div>
+						</div>
+					</div>
+				</div>
+			)}
 		</main>
 	);
 }

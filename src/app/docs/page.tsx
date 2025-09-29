@@ -1,289 +1,132 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
-	ClipboardIcon,
-	CheckIcon,
-	ChevronDownIcon,
+	PlayIcon,
 } from "@heroicons/react/24/outline";
 import { Highlight } from "prism-react-renderer";
 import { themes } from "prism-react-renderer";
 import { ContactUs } from "../components/ContactUs";
 
+interface ApiKeyData {
+	apiKey: string;
+	userId: string;
+	email: string;
+	currentTier: string;
+	usageCount: number;
+	createdAt: string;
+	lastUsed?: string;
+}
+
 export default function Docs() {
-	// Copy functionality
-	const [copied1, setCopied1] = useState(false);
-	const [copied2, setCopied2] = useState(false);
-	const apiExample1 = `curl -H 'Authorization: demo-key' \\
-  "https://api.edgar-json.com/filings/312070/000095010325001140/0000950103-25-001140.json"`;
-
-	const apiExample2 = `curl -H "Authorization: demo-key" \
-     -X GET \   
-     "https://api.edgar-json.com/filings/312070/000095010325001140/0000950103-25-001140/image_001.jpg" --output /tmp/image_001.jpg`;
-	const handleCopy1 = () => {
-		navigator.clipboard.writeText(apiExample1);
-		setCopied1(true);
-		setTimeout(() => setCopied1(false), 2000);
-	};
-	const handleCopy2 = () => {
-		navigator.clipboard.writeText(apiExample1);
-		setCopied2(true);
-		setTimeout(() => setCopied2(false), 2000);
+	// Get base URL dynamically
+	const getApiBaseUrl = () => {
+		if (typeof window !== 'undefined') {
+			return window.location.origin;
+		}
+		return process.env.NEXT_PUBLIC_VERCEL_URL 
+			? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+			: 'http://localhost:3000';
 	};
 
-	// Accordion state for Form 4 example
-	const [showForm4, setShowForm4] = useState(false);
+	const baseUrl = getApiBaseUrl();
 
-	// Example JSON snippet for a simplified Form 4
-	const form4ExampleJson = `{
-/**
- * attachments: string[]
- * 
- * The decoded S3 keypaths of the uuencoded 
- * attachment files found in the document. They are available 
- * for 14 days at url suffix provided in the array, and can 
- * be downloaded the same way you got the base-document.  
- */
-  "attachments": [],
-/** 
- * basic:
- * {
- *   "accessionNumber": string,
- *   "acceptanceDatetime": number, // unix timestamp
- *   "publicDocumentCount": string,
- *   "filedAsOfDate": number, // unix timestamp
- *   "submissionType": string,
- *   "url": string, // url of orig filing.
- * } 
- * Data that is consistent between all document types, 
- * parsed into a  more usable format.
- */
-  "basic": {
-    "accessionNumber": "0001628280-25-003035",
-    "acceptanceDatetime": 1738185950,
-    "publicDocumentCount": "1",
-    "filedAsOfDate": 1738123200,
-    "submissionType": "4",
-    "url": "https://www.sec.gov/Archives/edgar/data/1043000/000162828025003035/0001628280-25-003035.txt"
-  },
-
-/**
- * (slated for deprecation)
- * \`estimatedImpact\` is a rough internal sentiment analysis result
- * of this document. This value is derived internally and may not be 
- * useful for external applications. 
- */
-  "estimatedImpact": {
-    "marketImpact": "neutral",
-    "confidence": 0.6,
-    "totalScore": 0.00023202,
-    "sentiment": 0.00232019
-  },
-
-/**
- * parsed 
- * See sec-edgar-parser for types per "conformedSubmissionType."
- * 
- * This value contains the extracted keys and values from the document. 
- * All values are stored as strings to preserve numerical integrity, 
- * including leading zeros and other formatting quirks that JSON/JS 
- * cannot natively handle.
- * 
- * The document undergoes preprocessing before being parsed. Some 
- * parts as YAML, others as XML. Then normalized into JSON.
- * 
- * NOTE: This is a "best effort" parsing process. While most documents 
- * are handled by a single parser, some require additional logic. 
- * If data is missing, a custom parser may be needed for that document type.
- * 
- * If you encounter missing data, please contact the support email 
- * listed on this site so we can enhance parsing for your document.
- */
-  "parsed": {
-    "acceptanceDatetime": "20250129172550",
-    "accessionNumber": "0001628280-25-003035",
-    "conformedSubmissionType": "4",
-    "publicDocumentCount": "1",
-    "conformedPeriodOfReport": "20241231",
-    "filedAsOfDate": "20250129",
-    "dateAsOfChange": "20250129",
-    "reportingOwner": [
-      {
-        "ownerData": {
-          "companyConformedName": "BRICKMAN DAVID R",
-          "centralIndexKey": "0001257152",
-          "organizationName": null
-        },
-        "filingValues": {
-          "formType": "4",
-          "secAct": "1934 Act",
-          "secFileNumber": "001-13445",
-          "filmNumber": "25570410"
-        },
-        "mailAddress": {
-          "street1": "14160 DALLAS PARWAY",
-          "street2": "STE 300",
-          "city": "DALLAS",
-          "state": "TX",
-          "zip": "75254"
-        }
-      }
-    ],
-    "issuer": [
-      {
-        "companyData": {
-          "companyConformedName": "SONIDA SENIOR LIVING, INC.",
-          "centralIndexKey": "0001043000",
-          "standardIndustrialClassification": "SERVICES-NURSING & PERSONAL CARE FACILITIES [8050]",
-          "organizationName": "08 Industrial Applications and Services",
-          "irsNumber": "752678809",
-          "stateOfIncorporation": "DE",
-          "fiscalYearEnd": "1231"
-        },
-        "businessAddress": {
-          "street1": "16301 QUORUM DRIVE",
-          "street2": "SUITE 160A",
-          "city": "ADDISON",
-          "state": "TX",
-          "zip": "75001",
-          "businessPhone": "9727705600"
-        },
-        "mailAddress": {
-          "street1": "16301 QUORUM DRIVE",
-          "street2": "SUITE 160A",
-          "city": "ADDISON",
-          "state": "TX",
-          "zip": "75001"
-        },
-        "formerCompany": [
-          {
-            "formerConformedName": "CAPITAL SENIOR LIVING CORP",
-            "dateOfNameChange": "19970724"
-          }
-        ]
-      }
-    ],
-    "ownershipDocument": {
-      "schemaVersion": "X0508",
-      "documentType": 4,
-      "periodOfReport": "2024-12-31",
-      "notSubjectToSection16": 1,
-      "issuer": [
-        {
-          "issuerCik": "0001043000",
-          "issuerName": "SONIDA SENIOR LIVING, INC.",
-          "issuerTradingSymbol": "SNDA"
-        }
-      ],
-      "reportingOwner": [
-        {
-          "reportingOwnerId": {
-            "rptOwnerCik": "0001257152",
-            "rptOwnerName": "BRICKMAN DAVID R"
-          },
-          "reportingOwnerAddress": {
-            "rptOwnerStreet1": "14755 PRESTON ROAD",
-            "rptOwnerStreet2": "SUITE 810",
-            "rptOwnerCity": "DALLAS",
-            "rptOwnerState": "TX",
-            "rptOwnerZipCode": 75254,
-            "rptOwnerStateDescription": ""
-          },
-          "reportingOwnerRelationship": {
-            "isDirector": 0,
-            "isOfficer": 1,
-            "isTenPercentOwner": 0,
-            "isOther": 0,
-            "officerTitle": "SVP Gen. Counsel & Secretary"
-          }
-        }
-      ],
-      "aff10b5One": 0,
-      "nonDerivativeTable": {
-        "nonDerivativeTransaction": [
-          {
-            "securityTitle": {
-              "value": "Common Stock"
-            },
-            "transactionDate": {
-              "value": "2024-12-31"
-            },
-            "transactionCoding": {
-              "transactionFormType": 4,
-              "transactionCode": "F",
-              "equitySwapInvolved": 0
-            },
-            "transactionAmounts": {
-              "transactionShares": {
-                "value": 1671
-              },
-              "transactionPricePerShare": {
-                "value": 22.74,
-                "footnoteId": ""
-              },
-              "transactionAcquiredDisposedCode": {
-                "value": "D"
-              }
-            },
-            "postTransactionAmounts": {
-              "sharesOwnedFollowingTransaction": {
-                "value": 114298
-              }
-            },
-            "ownershipNature": {
-              "directOrIndirectOwnership": {
-                "value": "D"
-              }
-            }
-          },
-          {
-            "securityTitle": {
-              "value": "Common Stock"
-            },
-            "transactionDate": {
-              "value": "2024-12-31"
-            },
-            "transactionCoding": {
-              "transactionFormType": 4,
-              "transactionCode": "D",
-              "equitySwapInvolved": 0
-            },
-            "transactionAmounts": {
-              "transactionShares": {
-                "value": 76873
-              },
-              "transactionPricePerShare": {
-                "value": 0
-              },
-              "transactionAcquiredDisposedCode": {
-                "value": "D"
-              }
-            },
-            "postTransactionAmounts": {
-              "sharesOwnedFollowingTransaction": {
-                "value": 37425
-              }
-            },
-            "ownershipNature": {
-              "directOrIndirectOwnership": {
-                "value": "D"
-              }
-            }
-          }
-        ]
-      },
-      "derivativeTable": "",
-      "footnotes": {
-        "footnote": "Represents shares that were withheld upon vesting of restricted stock to satisfy tax withholding obligations."
-      },
-      "remarks": "",
-      "ownerSignature": {
-        "signatureName": "/s/ David Brickman",
-        "signatureDate": "2025-01-24"
-      }
-    }
+	// State management
+	const [isLoading, setIsLoading] = useState(true);
+	const [apiKeyData, setApiKeyData] = useState<ApiKeyData | null>(null);
+	const [isAuthenticated, setIsAuthenticated] = useState(false);
+	
+	// Test API state
+	const [testCode, setTestCode] = useState(`fetch('${baseUrl}/api/v1/filings/1578217/000157821725000004/0001578217-25-000004.json', {
+  headers: {
+    'Authorization': 'Bearer YOUR_API_KEY'
   }
-}`;
+})
+.then(response => response.json())
+.then(data => console.log(data))
+.catch(error => console.error('Error:', error));`);
+	const [testResponse, setTestResponse] = useState<string | null>(null);
+	const [isTesting, setIsTesting] = useState(false);
+	const [testError, setTestError] = useState<string | null>(null);
+
+	// Check authentication and API key
+	useEffect(() => {
+		const checkAuth = async () => {
+			try {
+				const response = await fetch('/api/auth/user');
+				if (response.ok) {
+					await response.json(); // userData not used
+					setIsAuthenticated(true);
+					
+					// Get API key data
+					const apiKeyResponse = await fetch('/api/api-key');
+					if (apiKeyResponse.ok) {
+						const response = await apiKeyResponse.json();
+						// Extract the actual API key data from the nested structure
+						setApiKeyData(response.data);
+					}
+				}
+			} catch (error) {
+				console.error('Auth check failed:', error);
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		checkAuth();
+	}, []);
+
+	// Update test code when base URL or API key changes
+	useEffect(() => {
+		if (!isLoading) {
+			const apiKey = apiKeyData?.apiKey || 'YOUR_API_KEY';
+			const newTestCode = `fetch('${baseUrl}/api/v1/filings/1578217/000157821725000004/0001578217-25-000004.json', {
+  headers: {
+    'Authorization': 'Bearer ${apiKey}'
+  }
+})`;
+			setTestCode(newTestCode);
+		}
+	}, [baseUrl, apiKeyData, isLoading]);
+
+
+	// Test API functionality
+	const handleTestApi = async () => {
+		if (!apiKeyData?.apiKey) return;
+		
+		setIsTesting(true);
+		setTestError(null);
+		setTestResponse(null);
+
+		try {
+			// Extract URL from the JavaScript code
+			const urlMatch = testCode.match(/fetch\('([^']+)'/);
+			if (!urlMatch) {
+				setTestError('Invalid JavaScript code format');
+				return;
+			}
+			
+			const apiUrl = urlMatch[1];
+			const response = await fetch(apiUrl, {
+				headers: {
+					'Authorization': `Bearer ${apiKeyData.apiKey}`,
+				},
+			});
+
+			const data = await response.json();
+			
+			if (response.ok) {
+				setTestResponse(JSON.stringify(data, null, 2));
+			} else {
+				setTestError(`Error ${response.status}: ${data.error || data.message || 'Unknown error'}`);
+			}
+		} catch (error) {
+			setTestError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+		} finally {
+			setIsTesting(false);
+		}
+	};
+
 
 	return (
 		<div className="p-8 max-w-3xl mx-auto bg-white shadow-xl rounded-lg mt-12">
@@ -294,6 +137,71 @@ export default function Docs() {
 			<p className="text-gray-600 mt-4 text-lg text-center">
 				Retrieve SEC EDGAR filings as structured JSON with a simple API call.
 			</p>
+
+			{/* Interactive API Testing - Only show when user has API key */}
+			{!isLoading && isAuthenticated && apiKeyData && (
+				<div className="mt-8 p-6 bg-blue-50 rounded-lg shadow-md">
+					<h2 className="text-2xl font-semibold text-gray-900 mb-4">
+						🧪 Test the API
+					</h2>
+					
+					<div className="space-y-4">
+						<p className="text-gray-700">
+							Test the API with your own API key. Modify the JavaScript code below and click &quot;Run Code&quot; to see the JSON response.
+						</p>
+						
+						<div className="space-y-2">
+							<textarea
+								value={testCode}
+								onChange={(e) => setTestCode(e.target.value)}
+								rows={8}
+								className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+								placeholder="Enter your JavaScript fetch code here..."
+							/>
+							<button
+								onClick={handleTestApi}
+								disabled={isTesting || !testCode}
+								className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+							>
+								<PlayIcon className="h-4 w-4" />
+								{isTesting ? 'Running...' : 'Run Code'}
+							</button>
+						</div>
+
+						{testError && (
+							<div className="p-4 bg-red-100 border border-red-300 rounded-md">
+								<p className="text-red-800 font-medium">Error:</p>
+								<p className="text-red-700 text-sm">{testError}</p>
+							</div>
+						)}
+
+						{testResponse && (
+							<div className="border border-gray-300 rounded-md bg-gray-100 overflow-x-auto">
+								<div className="p-2 bg-gray-200 border-b border-gray-300">
+									<p className="text-sm font-medium text-gray-700">Response:</p>
+								</div>
+								<Highlight
+									code={testResponse}
+									language="json"
+									theme={themes.github}
+								>
+									{({ className, style, tokens, getLineProps, getTokenProps }) => (
+										<pre className={`${className} p-4 text-sm`} style={style}>
+											{tokens.map((line, i) => (
+												<div key={i} {...getLineProps({ line })}>
+													{line.map((token, key) => (
+														<span key={key} {...getTokenProps({ token })} />
+													))}
+												</div>
+											))}
+										</pre>
+									)}
+								</Highlight>
+							</div>
+						)}
+					</div>
+				</div>
+			)}
 
 			{/* How it Works */}
 			<div className="mt-8 p-6 bg-gray-50 rounded-lg shadow-md">
@@ -314,158 +222,31 @@ export default function Docs() {
 					<p className="text-sm break-all">
 						https://www.sec.gov/Archives/edgar/data/
 						<span className="text-green-600">
-							312070/000095010325001140/0000950103-25-001140
+							1578217/000157821725000004/0001578217-25-000004
 						</span>
-						-index.htm
+						.txt
 					</p>
 					<p className="text-gray-800 font-mono text-sm mt-2">
 						<strong>Converted API URL:</strong>
 					</p>
-					<p className=" text-sm break-all">
-						https://api.edgar-json.com/filings/
+					<p className="text-sm break-all">
+						{baseUrl}/api/v1/filings/
 						<span className="text-green-600">
-							312070/000095010325001140/0000950103-25-001140
+							1578217/000157821725000004/0001578217-25-000004
 						</span>
 						.json
 					</p>
 				</div>
 			</div>
 
-			{/* API Example with Copy Button */}
-			<div className="mt-8 p-6 bg-gray-50 rounded-lg shadow-md">
-				<h2 className="text-2xl font-semibold text-gray-900">
-					⚡ API Request Example
-				</h2>
-				<p className="text-gray-700 mt-2">
-					Use the following <strong>cURL command</strong> to fetch an SEC filing
-					as JSON.
-				</p>
 
-				{/* Highlighted Code Block */}
-				<div className="relative mt-4 border border-gray-400 bg-gray-900 rounded-lg shadow-lg">
-					<Highlight code={apiExample1} language="bash" theme={themes.github}>
-						{({ className, style, tokens, getLineProps, getTokenProps }) => (
-							<pre
-								className={`${className} p-5 rounded-md text-white overflow-x-auto whitespace-pre-wrap text-sm`}
-								style={style}
-							>
-								{tokens.map((line, i) => (
-									<div key={i} {...getLineProps({ line })}>
-										{line.map((token, key) => (
-											<span key={key} {...getTokenProps({ token })} />
-										))}
-									</div>
-								))}
-							</pre>
-						)}
-					</Highlight>
-
-					{/* Copy Button */}
-					<button
-						type="button"
-						onClick={handleCopy1}
-						className="absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded-md flex items-center"
-					>
-						{copied1 ? (
-							<>
-								<CheckIcon className="h-4 w-4 mr-1" /> Copied!
-							</>
-						) : (
-							<>
-								<ClipboardIcon className="h-4 w-4 mr-1" /> Copy
-							</>
-						)}
-					</button>
-				</div>
-				{/* Form 4 Accordion */}
-				<div className="mt-6">
-					<button
-						type="button"
-						className="flex items-center justify-between w-full px-4 py-2 text-left bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-100 focus:outline-none"
-						onClick={() => setShowForm4(!showForm4)}
-					>
-						<span className="font-medium text-gray-900">
-							Show Example JSON filing
-						</span>
-						<ChevronDownIcon
-							className={`h-5 w-5 transform transition-transform duration-200 ${
-								showForm4 ? "rotate-180" : ""
-							}`}
-						/>
-					</button>
-
-					{showForm4 && (
-						<div className="mt-2 border border-gray-300 rounded-md bg-gray-100 overflow-x-auto">
-							<Highlight
-								code={form4ExampleJson}
-								language="json"
-								theme={themes.github}
-							>
-								{({
-									className,
-									style,
-									tokens,
-									getLineProps,
-									getTokenProps,
-								}) => (
-									<pre className={`${className} p-4 text-sm`} style={style}>
-										{tokens.map((line, i) => (
-											<div key={i} {...getLineProps({ line })}>
-												{line.map((token, key) => (
-													<span key={key} {...getTokenProps({ token })} />
-												))}
-											</div>
-										))}
-									</pre>
-								)}
-							</Highlight>
-						</div>
-					)}
-				</div>
-				{/* Highlighted Code Block */}
-				<div className="relative mt-4 border border-gray-400 bg-gray-900 rounded-lg shadow-lg">
-					<Highlight code={apiExample2} language="bash" theme={themes.github}>
-						{({ className, style, tokens, getLineProps, getTokenProps }) => (
-							<pre
-								className={`${className} p-5 rounded-md text-white overflow-x-auto whitespace-pre-wrap text-sm`}
-								style={style}
-							>
-								{tokens.map((line, i) => (
-									<div key={i} {...getLineProps({ line })}>
-										{line.map((token, key) => (
-											<span key={key} {...getTokenProps({ token })} />
-										))}
-									</div>
-								))}
-							</pre>
-						)}
-					</Highlight>
-
-					{/* Copy Button */}
-					<button
-						type="button"
-						onClick={handleCopy2}
-						className="absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded-md flex items-center"
-					>
-						{copied2 ? (
-							<>
-								<CheckIcon className="h-4 w-4 mr-1" /> Copied!
-							</>
-						) : (
-							<>
-								<ClipboardIcon className="h-4 w-4 mr-1" /> Copy
-							</>
-						)}
-					</button>
-				</div>
-			</div>
-
-			{/* API Key Requirement */}
+			{/* API Key Requirement - Only show if user doesn't have API key */}
+			{!isLoading && (!isAuthenticated || !apiKeyData) && (
 			<div className="mt-8 p-6 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-900 rounded-md">
 				<h3 className="text-lg font-semibold">⚠️ API Key Required</h3>
 				<p className="mt-1 text-sm">
 					You <strong>must include an API key</strong> in the request headers.
-					If you don’t have one yet, <strong>get your key here:</strong>
+						If you don&apos;t have one yet, <strong>get your key here:</strong>
 				</p>
 				<a
 					href="/api-key"
@@ -474,6 +255,7 @@ export default function Docs() {
 					Get Your API Key 🔑
 				</a>
 			</div>
+			)}
 
 			{/* Document Types Section (Semantic) */}
 			<section className="mt-8 p-6 bg-gray-50 rounded-lg shadow-md">
