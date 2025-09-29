@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 
 interface SubscriptionPlan {
   id: string;
@@ -193,7 +194,6 @@ export default function Billing() {
       });
 
       if (response.ok) {
-        const result = await response.json();
         // Refresh subscription data
         await loadBillingData();
         setShowCancelModal(false);
@@ -222,7 +222,6 @@ export default function Billing() {
       });
 
       if (response.ok) {
-        const result = await response.json();
         // Refresh subscription data
         await loadBillingData();
         setError(null);
@@ -249,7 +248,6 @@ export default function Billing() {
       });
 
       if (response.ok) {
-        const result = await response.json();
         // Refresh subscription data
         await loadBillingData();
         setError(null);
@@ -300,12 +298,12 @@ export default function Billing() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
           <p className="text-gray-600 mb-6">Please log in to access your billing information.</p>
-          <a
+          <Link
             href="/"
             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
           >
             Go to Home
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -546,13 +544,20 @@ export default function Billing() {
                   {billingInfo.address && (billingInfo.address.line1 || billingInfo.address.city || billingInfo.address.postalCode) ? (
                     <div>
                       <p className="text-sm font-medium text-gray-700">Billing Address</p>
-                      <p className="text-sm text-gray-600">
-                        {billingInfo.address.line1 && `${billingInfo.address.line1}<br />`}
-                        {billingInfo.address.line2 && `${billingInfo.address.line2}<br />`}
-                        {billingInfo.address.city && billingInfo.address.state && billingInfo.address.postalCode && 
-                          `${billingInfo.address.city}, ${billingInfo.address.state} ${billingInfo.address.postalCode}<br />`}
-                        {billingInfo.address.country}
-                      </p>
+                      <div className="text-sm text-gray-600">
+                        {billingInfo.address.line1 && (
+                          <div>{billingInfo.address.line1.replace(/<br\s*\/?>/gi, '')}</div>
+                        )}
+                        {billingInfo.address.line2 && (
+                          <div>{billingInfo.address.line2.replace(/<br\s*\/?>/gi, '')}</div>
+                        )}
+                        {billingInfo.address.city && billingInfo.address.state && billingInfo.address.postalCode && (
+                          <div>{billingInfo.address.city}, {billingInfo.address.state} {billingInfo.address.postalCode}</div>
+                        )}
+                        {billingInfo.address.country && (
+                          <div>{billingInfo.address.country}</div>
+                        )}
+                      </div>
                     </div>
                   ) : (
                     <div>
@@ -562,7 +567,7 @@ export default function Billing() {
                   )}
                   <div className="pt-3 border-t border-gray-200">
                     <p className="text-xs text-gray-500">
-                      Use "Manage Billing" to update your payment method and billing address.
+                      Use &quot;Manage Billing&quot; to update your payment method and billing address.
                     </p>
                   </div>
                 </div>
@@ -587,7 +592,7 @@ export default function Billing() {
               Cancel Subscription
             </h3>
             <p className="text-gray-600 mb-6">
-              Are you sure you want to cancel your subscription? Your subscription will remain active until the end of your current billing period ({currentSubscription?.currentPeriodEnd ? new Date(currentSubscription.currentPeriodEnd).toLocaleDateString() : 'N/A'}), after which you'll be downgraded to the Free plan.
+              Are you sure you want to cancel your subscription? Your subscription will remain active until the end of your current billing period ({currentSubscription?.currentPeriodEnd ? new Date(currentSubscription.currentPeriodEnd).toLocaleDateString() : 'N/A'}), after which you&apos;ll be downgraded to the Free plan.
             </p>
             <div className="flex space-x-3">
               <button
