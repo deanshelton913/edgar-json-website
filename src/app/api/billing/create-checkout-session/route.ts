@@ -50,17 +50,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Determine the correct base URL
-    const isDevelopment = request.url.includes('localhost');
-    const baseUrl = isDevelopment 
-      ? 'http://localhost:3000' 
-      : 'https://www.edgar-json.com';
+    // Determine the correct base URL using environment variables
+    const isVercel = process.env.VERCEL === '1';
+    const isProduction = process.env.NODE_ENV === 'production';
+    const baseUrl = (isVercel || isProduction) 
+      ? 'https://www.edgar-json.com' 
+      : 'http://localhost:3000';
 
     const successUrl = `${baseUrl}/billing?success=true`;
     const cancelUrl = `${baseUrl}/billing?canceled=true`;
 
-    console.log('[BILLING_CHECKOUT] Request URL:', request.url);
-    console.log('[BILLING_CHECKOUT] Is development:', isDevelopment);
+    console.log('[BILLING_CHECKOUT] VERCEL:', process.env.VERCEL);
+    console.log('[BILLING_CHECKOUT] NODE_ENV:', process.env.NODE_ENV);
+    console.log('[BILLING_CHECKOUT] Is Vercel:', isVercel);
+    console.log('[BILLING_CHECKOUT] Is production:', isProduction);
     console.log('[BILLING_CHECKOUT] Base URL:', baseUrl);
     console.log('[BILLING_CHECKOUT] Success URL:', successUrl);
     console.log('[BILLING_CHECKOUT] Cancel URL:', cancelUrl);
