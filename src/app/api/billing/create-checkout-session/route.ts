@@ -50,14 +50,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Determine the correct base URL
+    const isDevelopment = request.url.includes('localhost');
+    const baseUrl = isDevelopment 
+      ? 'http://localhost:3000' 
+      : 'https://www.edgar-json.com';
+
+    const successUrl = `${baseUrl}/billing?success=true`;
+    const cancelUrl = `${baseUrl}/billing?canceled=true`;
+
+    console.log('[BILLING_CHECKOUT] Request URL:', request.url);
+    console.log('[BILLING_CHECKOUT] Is development:', isDevelopment);
+    console.log('[BILLING_CHECKOUT] Base URL:', baseUrl);
+    console.log('[BILLING_CHECKOUT] Success URL:', successUrl);
+    console.log('[BILLING_CHECKOUT] Cancel URL:', cancelUrl);
+
     // Create checkout session
     const stripeService = container.resolve(StripeService);
     const session = await stripeService.createCheckoutSession({
       planId,
       userId,
       email: userEmail,
-      successUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/billing?success=true`,
-      cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/billing?canceled=true`,
+      successUrl,
+      cancelUrl,
     });
 
     loggingService.debug(`[BILLING_CHECKOUT] Checkout session created: ${session.id} for user: ${userId}`);
