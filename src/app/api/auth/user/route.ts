@@ -1,16 +1,14 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
 import { AuthUserRouteService } from '@/services/routes/AuthUserRouteService';
-import { withRedisRouteHandlerJson } from '@/lib/route-handler';
+import { handleRouteError } from '@/lib/errors';
 
 export async function GET(request: NextRequest) {
-  return withRedisRouteHandlerJson(
-    request,
-    'AUTH_USER_ROUTE',
-    async (req) => {
-      const authUserRouteService = container.resolve(AuthUserRouteService);
-      const result = await authUserRouteService.getInvokeV1(req);
-      return result;
-    }
-  );
+  try {
+    const authUserRouteService = container.resolve(AuthUserRouteService);
+    const result = await authUserRouteService.getInvokeV1(request);
+    return NextResponse.json(result);
+  } catch (error) {
+    return handleRouteError(error, 'AUTH_USER_ROUTE');
+  }
 }

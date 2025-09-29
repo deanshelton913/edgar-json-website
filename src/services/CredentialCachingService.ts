@@ -121,53 +121,7 @@ export class CredentialCachingService {
     }
   }
 
-  /**
-   * Cache user session data
-   */
-  public async cacheUserSession(sessionId: string, sessionData: Record<string, unknown>, ttlSeconds: number = 86400): Promise<void> {
-    try {
-      const client = await getRedisManager().getClient();
-      
-      if (!client) {
-        throw new Error('Redis client not available');
-      }
 
-      const key = this.getSessionCacheKey(sessionId);
-      await client.setEx(key, ttlSeconds, JSON.stringify(sessionData));
-      
-      this.loggingService.debug(`[CREDENTIAL_CACHE] Cached user session: ${sessionId}, TTL: ${ttlSeconds}s`);
-    } catch (error) {
-      this.loggingService.error(`[CREDENTIAL_CACHE] Error caching user session: ${error}`);
-      throw error;
-    }
-  }
-
-  /**
-   * Get cached user session data
-   */
-  public async getCachedUserSession(sessionId: string): Promise<Record<string, unknown> | null> {
-    try {
-      const client = await getRedisManager().getClient();
-      
-      if (!client) {
-        throw new Error('Redis client not available');
-      }
-
-      const key = this.getSessionCacheKey(sessionId);
-      const cached = await client.get(key);
-      
-      if (!cached) {
-        this.loggingService.debug(`[CREDENTIAL_CACHE] No cached session found for: ${sessionId}`);
-        return null;
-      }
-
-      this.loggingService.debug(`[CREDENTIAL_CACHE] Retrieved cached session: ${sessionId}`);
-      return JSON.parse(cached);
-    } catch (error) {
-      this.loggingService.error(`[CREDENTIAL_CACHE] Error getting cached user session: ${error}`);
-      return null;
-    }
-  }
 
   /**
    * Invalidate cached user session

@@ -128,12 +128,6 @@ export class GoogleAuthenticationService {
         providerId: userInfo.id,
       };
 
-      // Cache user session data
-      await this.credentialCache.cacheUserSession(
-        `google_${userInfo.id}`,
-        userSessionData,
-        86400 // 24 hours
-      );
 
       // User is authenticated - let them log in regardless of compliance
       return {
