@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     
     if (eventType !== 'unknown' && handledEvents.includes(eventType)) {
       loggingService.error(`[STRIPE_WEBHOOK] Error processing handled event (${eventType}): ${error}`);
-    } else if (error.toString().includes('signature verification failed')) {
+    } else if (error instanceof Error && error.message.includes('signature verification failed')) {
       // This is likely a webhook from a different Stripe account or misconfigured endpoint
       loggingService.debug(`[STRIPE_WEBHOOK] Signature verification failed - likely wrong webhook endpoint or secret`);
     } else {
