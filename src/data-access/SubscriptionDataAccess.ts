@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { db, subscriptions } from "@/db";
 import { LoggingService } from "@/services/LoggingService";
 
@@ -69,6 +69,7 @@ export class SubscriptionDataAccess {
         .select()
         .from(subscriptions)
         .where(eq(subscriptions.userId, userId))
+        .orderBy(desc(subscriptions.createdAt))
         .limit(1);
 
       if (result.length > 0) {
