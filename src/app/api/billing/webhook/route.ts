@@ -6,6 +6,7 @@ import { LoggingService } from '@/services/LoggingService';
 
 export async function POST(request: NextRequest) {
   const loggingService = container.resolve(LoggingService);
+  let eventType = 'unknown';
   
   try {
     const body = await request.text();
@@ -22,6 +23,7 @@ export async function POST(request: NextRequest) {
     // Verify webhook signature
     const stripeService = container.resolve(StripeService);
     const event = await stripeService.constructWebhookEvent(body, signature);
+    eventType = event.type;
 
     // Only log events we actually handle
     const handledEvents = [
@@ -44,7 +46,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
 
   } catch (error) {
-    loggingService.error(`[STRIPE_WEBHOOK] Error processing webhook: ${error}`);
+    loggingService.error(`[STRIPE_WEBHOOK] Error processing webhook (${eventType}): ${error}`);
     return NextResponse.json(
       { error: 'Webhook processing failed' },
       { status: 200 }
