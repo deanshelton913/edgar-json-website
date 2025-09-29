@@ -42,13 +42,21 @@ export default function Home() {
 				<p className="text-lg text-gray-700 max-w-lg">
 					Get structured SEC filings instantly.
 				</p>
-				<button
-					onClick={handleCTAClick}
-					disabled={isLoading}
-					className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-md shadow-md hover:bg-blue-700 transition inline-block disabled:opacity-50"
-				>
-					{isLoading ? 'Loading...' : '🚀 Get Your FREE API Key Now!'}
-				</button>
+				<div className="flex flex-col sm:flex-row gap-4 mt-4">
+					<button
+						onClick={handleCTAClick}
+						disabled={isLoading}
+						className="px-6 py-3 bg-blue-600 text-white rounded-md shadow-md hover:bg-blue-700 transition inline-block disabled:opacity-50"
+					>
+						{isLoading ? 'Loading...' : '🚀 Get Your FREE API Key Now!'}
+					</button>
+					<button
+						onClick={() => window.location.href = '/docs'}
+						className="px-6 py-3 bg-gray-600 text-white rounded-md shadow-md hover:bg-gray-700 transition inline-block"
+					>
+						🧪 Test API Key
+					</button>
+				</div>
 			</section>
 
 			{/* Example Comparison Section */}

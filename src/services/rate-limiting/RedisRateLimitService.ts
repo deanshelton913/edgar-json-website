@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
-import { createClient, RedisClientType } from 'redis';
 import type { LoggingService } from "@/services/LoggingService";
+import { RedisConnectionSingleton } from "@/services/RedisConnectionSingleton";
 import { ApiKeyCacheService } from "@/services/ApiKeyCacheService";
 
 export interface RateLimitInfo {
@@ -22,76 +22,22 @@ export interface RateLimitConfig {
 
 @injectable()
 export class RedisRateLimitService {
-  private redis: RedisClientType | null = null;
   private isConnected = false;
 
   constructor(
     @inject("LoggingService") private loggingService: LoggingService,
+    @inject("RedisConnectionSingleton") private redisSingleton: RedisConnectionSingleton,
     @inject("ApiKeyCacheService") private apiKeyCacheService: ApiKeyCacheService,
   ) {}
-
-  /**
-   * Initialize Redis connection
-   */
-  private async ensureConnection(): Promise<void> {
-    if (this.isConnected && this.redis) {
-      return;
-    }
-
-    try {
-      const redisUrl = process.env.REDIS_URL;
-      this.loggingService.debug(`[REDIS_RATE_LIMIT] Redis URL: ${redisUrl}`);
-      
-      if (!redisUrl) {
-        throw new Error('REDIS_URL environment variable is not set');
-      }
-
-      this.loggingService.debug(`[REDIS_RATE_LIMIT] Connecting to Redis with URL: ${redisUrl}`);
-      
-      this.redis = createClient({
-        url: redisUrl,
-        socket: {
-          reconnectStrategy: (retries) => {
-            if (retries > 10) {
-              this.loggingService.error('[REDIS_RATE_LIMIT] Max reconnection attempts reached');
-              return new Error('Max reconnection attempts reached');
-            }
-            return Math.min(retries * 100, 3000);
-          }
-        }
-      });
-
-      this.redis.on('error', (err) => {
-        this.loggingService.error('[REDIS_RATE_LIMIT] Redis error:', err);
-        this.isConnected = false;
-      });
-
-      this.redis.on('connect', () => {
-        this.loggingService.debug('[REDIS_RATE_LIMIT] Connected to Redis');
-        this.isConnected = true;
-      });
-
-      this.redis.on('disconnect', () => {
-        this.loggingService.warn('[REDIS_RATE_LIMIT] Disconnected from Redis');
-        this.isConnected = false;
-      });
-
-      await this.redis.connect();
-      
-    } catch (error) {
-      this.loggingService.error('[REDIS_RATE_LIMIT] Failed to connect to Redis:', error);
-      throw error;
-    }
-  }
 
   /**
    * Check if an API key has exceeded rate limits using per-API-key configuration
    */
   async checkRateLimit(apiKey: string): Promise<RateLimitInfo> {
     try {
-      await this.ensureConnection();
+      const client = await this.redisSingleton.getClient();
       
-      if (!this.redis) {
+      if (!client) {
         throw new Error('Redis client not available');
       }
 
@@ -116,7 +62,7 @@ export class RedisRateLimitService {
       const dayKey = this.getDayKey(apiKey, now);
 
       // Get current counts using pipeline for efficiency
-      const pipeline = this.redis.multi();
+      const pipeline = client.multi();
       pipeline.get(minuteKey);
       pipeline.get(dayKey);
       pipeline.expire(minuteKey, 60); // Set TTL for minute key
@@ -170,9 +116,9 @@ export class RedisRateLimitService {
    */
   async incrementRateLimit(apiKey: string): Promise<void> {
     try {
-      await this.ensureConnection();
+      const client = await this.redisSingleton.getClient();
       
-      if (!this.redis) {
+      if (!client) {
         throw new Error('Redis client not available');
       }
 
@@ -181,7 +127,7 @@ export class RedisRateLimitService {
       const dayKey = this.getDayKey(apiKey, now);
 
       // Use pipeline for atomic operations
-      const pipeline = this.redis.multi();
+      const pipeline = client.multi();
       pipeline.incr(minuteKey);
       pipeline.expire(minuteKey, 60); // Set TTL for minute key
       pipeline.incr(dayKey);
@@ -209,9 +155,9 @@ export class RedisRateLimitService {
    */
   async resetRateLimit(apiKey: string): Promise<void> {
     try {
-      await this.ensureConnection();
+      const client = await this.redisSingleton.getClient();
       
-      if (!this.redis) {
+      if (!client) {
         throw new Error('Redis client not available');
       }
 
@@ -219,7 +165,7 @@ export class RedisRateLimitService {
       const minuteKey = this.getMinuteKey(apiKey, now);
       const dayKey = this.getDayKey(apiKey, now);
 
-      await this.redis.del([minuteKey, dayKey]);
+      await client.del([minuteKey, dayKey]);
       
       this.loggingService.debug(`[REDIS_RATE_LIMIT] Reset rate limit counters for ${apiKey}`);
 
@@ -254,32 +200,12 @@ export class RedisRateLimitService {
   }
 
   /**
-   * Close Redis connection
-   */
-  async close(): Promise<void> {
-    if (this.redis) {
-      try {
-        await this.redis.quit();
-        this.isConnected = false;
-        this.loggingService.debug('[REDIS_RATE_LIMIT] Redis connection closed');
-      } catch (error) {
-        this.loggingService.error('[REDIS_RATE_LIMIT] Error closing Redis connection:', error);
-      }
-    }
-  }
-
-  /**
    * Health check for Redis connection
    */
   async healthCheck(): Promise<boolean> {
     try {
-      await this.ensureConnection();
-      
-      if (!this.redis) {
-        return false;
-      }
-
-      await this.redis.ping();
+      const client = await this.redisSingleton.getClient();
+      await client.ping();
       return true;
     } catch (error) {
       this.loggingService.error('[REDIS_RATE_LIMIT] Redis health check failed:', error);

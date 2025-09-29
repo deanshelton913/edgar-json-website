@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
-import { createClient, RedisClientType } from 'redis';
 import type { LoggingService } from "@/services/LoggingService";
+import { RedisConnectionSingleton } from "@/services/RedisConnectionSingleton";
 
 export interface CachedCredential {
   apiKey: string;
@@ -22,78 +22,20 @@ export interface ApiKeyInfo {
 
 @injectable()
 export class CredentialCachingService {
-  private redis: RedisClientType | null = null;
   private isConnected = false;
 
   constructor(
     @inject("LoggingService") private loggingService: LoggingService,
+    @inject("RedisConnectionSingleton") private redisSingleton: RedisConnectionSingleton,
   ) {}
-
-  /**
-   * Initialize Redis connection
-   */
-  private async ensureConnection(): Promise<void> {
-    if (this.isConnected && this.redis) {
-      return;
-    }
-
-    try {
-      const redisUrl = process.env.REDIS_URL;
-      this.loggingService.debug(`[CREDENTIAL_CACHE] Redis URL: ${redisUrl}`);
-      
-      if (!redisUrl) {
-        throw new Error('REDIS_URL environment variable is not set');
-      }
-
-      this.loggingService.debug(`[CREDENTIAL_CACHE] Connecting to Redis with URL: ${redisUrl}`);
-      
-      this.redis = createClient({
-        url: redisUrl,
-        socket: {
-          reconnectStrategy: (retries) => {
-            if (retries > 10) {
-              this.loggingService.error('[CREDENTIAL_CACHE] Max reconnection attempts reached');
-              return new Error('Max reconnection attempts reached');
-            }
-            return Math.min(retries * 100, 3000);
-          }
-        }
-      });
-
-      this.redis.on('error', (err) => {
-        this.loggingService.error('[CREDENTIAL_CACHE] Redis error:', err);
-        this.isConnected = false;
-      });
-
-      this.redis.on('connect', () => {
-        this.loggingService.debug('[CREDENTIAL_CACHE] Connected to Redis');
-        this.isConnected = true;
-      });
-
-      this.redis.on('disconnect', () => {
-        this.loggingService.warn('[CREDENTIAL_CACHE] Disconnected from Redis');
-        this.isConnected = false;
-      });
-
-      await this.redis.connect();
-      
-    } catch (error) {
-      this.loggingService.error('[CREDENTIAL_CACHE] Failed to connect to Redis:', error);
-      throw error;
-    }
-  }
 
   /**
    * Cache API key credentials with TTL
    */
   public async cacheApiKeyCredentials(apiKeyInfo: ApiKeyInfo, ttlSeconds: number = 3600): Promise<void> {
     try {
-      await this.ensureConnection();
+      const client = await this.redisSingleton.getClient();
       
-      if (!this.redis) {
-        throw new Error('Redis client not available');
-      }
-
       const key = this.getApiKeyCacheKey(apiKeyInfo.apiKey);
       const credential: CachedCredential = {
         apiKey: apiKeyInfo.apiKey,
@@ -104,7 +46,7 @@ export class CredentialCachingService {
         expiresAt: new Date(Date.now() + ttlSeconds * 1000),
       };
 
-      await this.redis.setEx(key, ttlSeconds, JSON.stringify(credential));
+      await client.setEx(key, ttlSeconds, JSON.stringify(credential));
       
       this.loggingService.debug(`[CREDENTIAL_CACHE] Cached API key credentials for: ${apiKeyInfo.apiKey.substring(0, 10)}..., TTL: ${ttlSeconds}s`);
     } catch (error) {
@@ -118,14 +60,14 @@ export class CredentialCachingService {
    */
   public async getCachedApiKeyCredentials(apiKey: string): Promise<CachedCredential | null> {
     try {
-      await this.ensureConnection();
+      const client = await this.redisSingleton.getClient();
       
-      if (!this.redis) {
+      if (!client) {
         throw new Error('Redis client not available');
       }
 
       const key = this.getApiKeyCacheKey(apiKey);
-      const cached = await this.redis.get(key);
+      const cached = await client.get(key);
       
       if (!cached) {
         this.loggingService.debug(`[CREDENTIAL_CACHE] No cached credentials found for: ${apiKey.substring(0, 10)}...`);
@@ -137,7 +79,7 @@ export class CredentialCachingService {
       // Check if credential has expired
       if (new Date() > credential.expiresAt) {
         this.loggingService.debug(`[CREDENTIAL_CACHE] Cached credentials expired for: ${apiKey.substring(0, 10)}...`);
-        await this.redis.del(key);
+        await client.del(key);
         return null;
       }
 
@@ -154,14 +96,14 @@ export class CredentialCachingService {
    */
   public async invalidateApiKeyCredentials(apiKey: string): Promise<void> {
     try {
-      await this.ensureConnection();
+      const client = await this.redisSingleton.getClient();
       
-      if (!this.redis) {
+      if (!client) {
         throw new Error('Redis client not available');
       }
 
       const key = this.getApiKeyCacheKey(apiKey);
-      await this.redis.del(key);
+      await client.del(key);
       
       this.loggingService.debug(`[CREDENTIAL_CACHE] Invalidated cached credentials for: ${apiKey.substring(0, 10)}...`);
     } catch (error) {
@@ -175,14 +117,14 @@ export class CredentialCachingService {
    */
   public async cacheUserSession(sessionId: string, sessionData: Record<string, unknown>, ttlSeconds: number = 86400): Promise<void> {
     try {
-      await this.ensureConnection();
+      const client = await this.redisSingleton.getClient();
       
-      if (!this.redis) {
+      if (!client) {
         throw new Error('Redis client not available');
       }
 
       const key = this.getSessionCacheKey(sessionId);
-      await this.redis.setEx(key, ttlSeconds, JSON.stringify(sessionData));
+      await client.setEx(key, ttlSeconds, JSON.stringify(sessionData));
       
       this.loggingService.debug(`[CREDENTIAL_CACHE] Cached user session: ${sessionId}, TTL: ${ttlSeconds}s`);
     } catch (error) {
@@ -196,14 +138,14 @@ export class CredentialCachingService {
    */
   public async getCachedUserSession(sessionId: string): Promise<Record<string, unknown> | null> {
     try {
-      await this.ensureConnection();
+      const client = await this.redisSingleton.getClient();
       
-      if (!this.redis) {
+      if (!client) {
         throw new Error('Redis client not available');
       }
 
       const key = this.getSessionCacheKey(sessionId);
-      const cached = await this.redis.get(key);
+      const cached = await client.get(key);
       
       if (!cached) {
         this.loggingService.debug(`[CREDENTIAL_CACHE] No cached session found for: ${sessionId}`);
@@ -223,14 +165,14 @@ export class CredentialCachingService {
    */
   public async invalidateUserSession(sessionId: string): Promise<void> {
     try {
-      await this.ensureConnection();
+      const client = await this.redisSingleton.getClient();
       
-      if (!this.redis) {
+      if (!client) {
         throw new Error('Redis client not available');
       }
 
       const key = this.getSessionCacheKey(sessionId);
-      await this.redis.del(key);
+      await client.del(key);
       
       this.loggingService.debug(`[CREDENTIAL_CACHE] Invalidated cached session: ${sessionId}`);
     } catch (error) {
@@ -247,14 +189,14 @@ export class CredentialCachingService {
     requestsPerDay: number;
   }, ttlSeconds: number = 3600): Promise<void> {
     try {
-      await this.ensureConnection();
+      const client = await this.redisSingleton.getClient();
       
-      if (!this.redis) {
+      if (!client) {
         throw new Error('Redis client not available');
       }
 
       const key = this.getRateLimitConfigKey(apiKey);
-      await this.redis.setEx(key, ttlSeconds, JSON.stringify(config));
+      await client.setEx(key, ttlSeconds, JSON.stringify(config));
       
       this.loggingService.debug(`[CREDENTIAL_CACHE] Cached rate limit config for: ${apiKey.substring(0, 10)}..., TTL: ${ttlSeconds}s`);
     } catch (error) {
@@ -271,14 +213,14 @@ export class CredentialCachingService {
     requestsPerDay: number;
   } | null> {
     try {
-      await this.ensureConnection();
+      const client = await this.redisSingleton.getClient();
       
-      if (!this.redis) {
+      if (!client) {
         throw new Error('Redis client not available');
       }
 
       const key = this.getRateLimitConfigKey(apiKey);
-      const cached = await this.redis.get(key);
+      const cached = await client.get(key);
       
       if (!cached) {
         this.loggingService.debug(`[CREDENTIAL_CACHE] No cached rate limit config found for: ${apiKey.substring(0, 10)}...`);
@@ -315,32 +257,12 @@ export class CredentialCachingService {
   }
 
   /**
-   * Close Redis connection
-   */
-  async close(): Promise<void> {
-    if (this.redis) {
-      try {
-        await this.redis.quit();
-        this.isConnected = false;
-        this.loggingService.debug('[CREDENTIAL_CACHE] Redis connection closed');
-      } catch (error) {
-        this.loggingService.error('[CREDENTIAL_CACHE] Error closing Redis connection:', error);
-      }
-    }
-  }
-
-  /**
    * Health check for Redis connection
    */
   async healthCheck(): Promise<boolean> {
     try {
-      await this.ensureConnection();
-      
-      if (!this.redis) {
-        return false;
-      }
-
-      await this.redis.ping();
+      const client = await this.redisSingleton.getClient();
+      await client.ping();
       return true;
     } catch (error) {
       this.loggingService.error('[CREDENTIAL_CACHE] Redis health check failed:', error);

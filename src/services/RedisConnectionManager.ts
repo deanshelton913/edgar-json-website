@@ -1,9 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import { LoggingService } from "./LoggingService";
-import { CredentialCachingService } from "./CredentialCachingService";
-import { RedisRateLimitService } from "./rate-limiting/RedisRateLimitService";
-import { UsageTrackingService } from "./rate-limiting/UsageTrackingService";
-import { ApiKeyCacheService } from "./ApiKeyCacheService";
+import { RedisConnectionSingleton } from "./RedisConnectionSingleton";
 
 @injectable()
 export class RedisConnectionManager {
@@ -11,10 +8,7 @@ export class RedisConnectionManager {
 
   constructor(
     @inject("LoggingService") private loggingService: LoggingService,
-    @inject("CredentialCachingService") private credentialCachingService: CredentialCachingService,
-    @inject("RedisRateLimitService") private redisRateLimitService: RedisRateLimitService,
-    @inject("UsageTrackingService") private usageTrackingService: UsageTrackingService,
-    @inject("ApiKeyCacheService") private apiKeyCacheService: ApiKeyCacheService,
+    @inject("RedisConnectionSingleton") private redisSingleton: RedisConnectionSingleton,
   ) {
     this.setupShutdownHandlers();
   }
@@ -63,33 +57,13 @@ export class RedisConnectionManager {
     }
 
     this.isShuttingDown = true;
-    this.loggingService.info('[REDIS_MANAGER] Starting graceful shutdown of Redis connections...');
-
-    const shutdownPromises = [
-      this.closeService('CredentialCachingService', () => this.credentialCachingService.close()),
-      this.closeService('RedisRateLimitService', () => this.redisRateLimitService.close()),
-      this.closeService('UsageTrackingService', () => this.usageTrackingService.close()),
-      this.closeService('ApiKeyCacheService', () => this.apiKeyCacheService.close()),
-    ];
+    this.loggingService.info('[REDIS_MANAGER] Starting graceful shutdown of Redis connection...');
 
     try {
-      await Promise.allSettled(shutdownPromises);
-      this.loggingService.info('[REDIS_MANAGER] All Redis connections closed successfully');
+      await this.redisSingleton.close();
+      this.loggingService.info('[REDIS_MANAGER] Redis connection closed successfully');
     } catch (error) {
       this.loggingService.error('[REDIS_MANAGER] Error during shutdown:', error);
-    }
-  }
-
-  /**
-   * Close a specific service with error handling
-   */
-  private async closeService(serviceName: string, closeFn: () => Promise<void>): Promise<void> {
-    try {
-      this.loggingService.debug(`[REDIS_MANAGER] Closing ${serviceName}...`);
-      await closeFn();
-      this.loggingService.debug(`[REDIS_MANAGER] ${serviceName} closed successfully`);
-    } catch (error) {
-      this.loggingService.error(`[REDIS_MANAGER] Error closing ${serviceName}:`, error);
     }
   }
 

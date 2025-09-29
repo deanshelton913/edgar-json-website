@@ -3,7 +3,7 @@ import { LoggingService } from "@/services/LoggingService";
 import { PlanConfigurationService } from "@/services/PlanConfigurationService";
 import { SubscriptionDataAccess } from "@/services/data-access/SubscriptionDataAccess";
 import { RedisRateLimitService } from "./RedisRateLimitService";
-import { createClient, RedisClientType } from 'redis';
+import { RedisConnectionSingleton } from "@/services/RedisConnectionSingleton";
 
 export interface UsageRecord {
   apiKey: string;
@@ -44,78 +44,24 @@ export interface UsageStats {
 
 @injectable()
 export class UsageTrackingService {
-  private redis: RedisClientType | null = null;
   private isConnected = false;
 
   constructor(
     @inject("LoggingService") private loggingService: LoggingService,
     @inject("PlanConfigurationService") private planConfigService: PlanConfigurationService,
     @inject("SubscriptionDataAccess") private subscriptionDataAccess: SubscriptionDataAccess,
+    @inject("RedisConnectionSingleton") private redisSingleton: RedisConnectionSingleton,
     @inject("RedisRateLimitService") private redisRateLimitService: RedisRateLimitService,
   ) {}
-
-  /**
-   * Initialize Redis connection
-   */
-  private async ensureConnection(): Promise<void> {
-    if (this.isConnected && this.redis) {
-      return;
-    }
-
-    try {
-      const redisUrl = process.env.REDIS_URL;
-      this.loggingService.debug(`[USAGE_TRACKING] Redis URL: ${redisUrl}`);
-      
-      if (!redisUrl) {
-        throw new Error('REDIS_URL environment variable is not set');
-      }
-
-      this.loggingService.debug(`[USAGE_TRACKING] Connecting to Redis with URL: ${redisUrl}`);
-      
-      this.redis = createClient({
-        url: redisUrl,
-        socket: {
-          reconnectStrategy: (retries) => {
-            if (retries > 10) {
-              this.loggingService.error('[USAGE_TRACKING] Max reconnection attempts reached');
-              return new Error('Max reconnection attempts reached');
-            }
-            return Math.min(retries * 100, 3000);
-          }
-        }
-      });
-
-      this.redis.on('error', (err) => {
-        this.loggingService.error('[USAGE_TRACKING] Redis error:', err);
-        this.isConnected = false;
-      });
-
-      this.redis.on('connect', () => {
-        this.loggingService.debug('[USAGE_TRACKING] Connected to Redis');
-        this.isConnected = true;
-      });
-
-      this.redis.on('disconnect', () => {
-        this.loggingService.warn('[USAGE_TRACKING] Disconnected from Redis');
-        this.isConnected = false;
-      });
-
-      await this.redis.connect();
-      
-    } catch (error) {
-      this.loggingService.error('[USAGE_TRACKING] Failed to connect to Redis:', error);
-      throw error;
-    }
-  }
 
   /**
    * Track API usage for billing and analytics using Redis only
    */
   public async trackUsage(usageRecord: UsageRecord): Promise<void> {
     try {
-      await this.ensureConnection();
+      const client = await this.redisSingleton.getClient();
       
-      if (!this.redis) {
+      if (!client) {
         throw new Error('Redis client not available');
       }
 
@@ -127,7 +73,7 @@ export class UsageTrackingService {
       const endpointKey = this.getUsageEndpointKey(usageRecord.apiKey, usageRecord.endpoint, timestamp);
 
       // Store usage data in Redis with appropriate TTLs
-      const pipeline = this.redis.multi();
+      const pipeline = client.multi();
       
       // Store daily usage summary
       pipeline.hIncrBy(dayKey, 'totalRequests', 1);
@@ -193,9 +139,9 @@ export class UsageTrackingService {
    */
   public async getUsageStats(apiKey: string, userId: string, days: number = 30): Promise<UsageStats> {
     try {
-      await this.ensureConnection();
+      const client = await this.redisSingleton.getClient();
       
-      if (!this.redis) {
+      if (!client) {
         throw new Error('Redis client not available');
       }
 
@@ -214,7 +160,7 @@ export class UsageTrackingService {
       // Get usage data for each day in the range
       for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
         const dayKey = this.getUsageDayKey(apiKey, d);
-        const dayData = await this.redis.hGetAll(dayKey);
+        const dayData = await client.hGetAll(dayKey);
         
         if (dayData.totalRequests) {
           totalRequests += parseInt(dayData.totalRequests);
@@ -227,7 +173,7 @@ export class UsageTrackingService {
       // Get endpoint statistics for the last 30 days
       const endpointKeys = await this.getEndpointKeys(apiKey, 30);
       for (const endpointKey of endpointKeys) {
-        const endpointData = await this.redis.hGetAll(endpointKey);
+        const endpointData = await client.hGetAll(endpointKey);
         if (endpointData.count) {
           const count = parseInt(endpointData.count);
           const totalTime = parseFloat(endpointData.totalTime || '0');
@@ -316,7 +262,8 @@ export class UsageTrackingService {
    * Get endpoint keys for a given number of days
    */
   private async getEndpointKeys(apiKey: string, days: number): Promise<string[]> {
-    if (!this.redis) {
+    const client = await this.redisSingleton.getClient();
+    if (!client) {
       return [];
     }
 
@@ -327,7 +274,7 @@ export class UsageTrackingService {
 
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
       const pattern = `usage:${apiKey}:endpoint:*:${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      const dayKeys = await this.redis.keys(pattern);
+      const dayKeys = await client.keys(pattern);
       keys.push(...dayKeys);
     }
 
@@ -335,32 +282,12 @@ export class UsageTrackingService {
   }
 
   /**
-   * Close Redis connection
-   */
-  async close(): Promise<void> {
-    if (this.redis) {
-      try {
-        await this.redis.quit();
-        this.isConnected = false;
-        this.loggingService.debug('[USAGE_TRACKING] Redis connection closed');
-      } catch (error) {
-        this.loggingService.error('[USAGE_TRACKING] Error closing Redis connection:', error);
-      }
-    }
-  }
-
-  /**
    * Health check for Redis connection
    */
   async healthCheck(): Promise<boolean> {
     try {
-      await this.ensureConnection();
-      
-      if (!this.redis) {
-        return false;
-      }
-
-      await this.redis.ping();
+      const client = await this.redisSingleton.getClient();
+      await client.ping();
       return true;
     } catch (error) {
       this.loggingService.error('[USAGE_TRACKING] Redis health check failed:', error);
