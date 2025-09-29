@@ -166,16 +166,25 @@ export class StripeService {
   /**
    * Cancel a subscription at the end of the current period
    */
-  async cancelSubscription(subscriptionId: string): Promise<Stripe.Subscription> {
+  async cancelSubscription(subscriptionId: string, prorate: boolean = false): Promise<Stripe.Subscription> {
     try {
-      this.loggingService.debug(`[STRIPE_SERVICE] Canceling subscription: ${subscriptionId}`);
+      this.loggingService.debug(`[STRIPE_SERVICE] Canceling subscription: ${subscriptionId} (prorate: ${prorate})`);
       
-      const subscription = await this.stripe.subscriptions.update(subscriptionId, {
-        cancel_at_period_end: true,
-      });
-
-      this.loggingService.debug(`[STRIPE_SERVICE] Subscription canceled at period end: ${subscriptionId}`);
-      return subscription;
+      if (prorate) {
+        // For prorated cancellation, we need to cancel immediately and create a credit
+        const subscription = await this.stripe.subscriptions.cancel(subscriptionId, {
+          prorate: true,
+        });
+        this.loggingService.debug(`[STRIPE_SERVICE] Subscription canceled immediately with proration: ${subscriptionId}`);
+        return subscription;
+      } else {
+        // Standard cancellation at period end
+        const subscription = await this.stripe.subscriptions.update(subscriptionId, {
+          cancel_at_period_end: true,
+        });
+        this.loggingService.debug(`[STRIPE_SERVICE] Subscription canceled at period end: ${subscriptionId}`);
+        return subscription;
+      }
     } catch (error) {
       this.loggingService.error(`[STRIPE_SERVICE] Error canceling subscription: ${error}`);
       throw error;

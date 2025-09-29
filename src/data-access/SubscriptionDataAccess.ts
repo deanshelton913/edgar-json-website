@@ -190,4 +190,32 @@ export class SubscriptionDataAccess {
       throw error;
     }
   }
+
+  async getActiveSubscriptionsByUserId(userId: number): Promise<SubscriptionData[]> {
+    try {
+      const result = await db
+        .select()
+        .from(subscriptions)
+        .where(eq(subscriptions.userId, userId));
+
+      return result.map(subscription => ({
+        id: subscription.id,
+        cuid: subscription.cuid,
+        userId: subscription.userId,
+        stripeCustomerId: subscription.stripeCustomerId,
+        stripeSubscriptionId: subscription.stripeSubscriptionId,
+        planId: subscription.planId,
+        status: subscription.status as 'active' | 'canceled' | 'past_due' | 'incomplete' | 'incomplete_expired' | 'trialing' | 'unpaid',
+        currentPeriodStart: subscription.currentPeriodStart,
+        currentPeriodEnd: subscription.currentPeriodEnd,
+        cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+        canceledAt: subscription.canceledAt || undefined,
+        createdAt: subscription.createdAt,
+        updatedAt: subscription.updatedAt,
+      }));
+    } catch (error) {
+      this.loggingService.error(`[SUBSCRIPTION_DAL] Error getting active subscriptions by user ID: ${error}`);
+      throw error;
+    }
+  }
 }
