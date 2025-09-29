@@ -144,7 +144,7 @@ export class StripeService {
     try {
       return this.stripe.webhooks.constructEvent(payload, signature, this.config.webhookSecret);
     } catch (error) {
-      this.loggingService.error(`[STRIPE_SERVICE] Webhook signature verification failed: ${error}`);
+      // Don't log signature verification errors here - let the webhook handler decide
       throw error;
     }
   }
