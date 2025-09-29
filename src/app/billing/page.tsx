@@ -360,15 +360,18 @@ export default function Billing() {
             {plans.map((plan) => {
               const isCurrentPlan = currentSubscription?.planId === plan.id;
               const isFree = plan.id === 'free';
+              const isDowngrade = currentSubscription?.planId === 'enterprise' && plan.id === 'pro';
+              const isUpgrade = currentSubscription?.planId === 'pro' && plan.id === 'enterprise';
+              const showPopular = plan.popular && currentSubscription?.planId !== 'enterprise';
               
               return (
                 <div
                   key={plan.id}
                   className={`relative bg-white rounded-lg shadow-sm border-2 p-6 ${
-                    plan.popular ? 'border-blue-500' : 'border-gray-200'
+                    showPopular ? 'border-blue-500' : 'border-gray-200'
                   } ${isCurrentPlan ? 'ring-2 ring-green-500' : ''}`}
                 >
-                  {plan.popular && (
+                  {showPopular && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                       <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">
                         Most Popular
@@ -413,10 +416,16 @@ export default function Billing() {
                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                         : isFree
                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : isDowngrade
+                        ? 'bg-orange-600 text-white hover:bg-orange-700'
                         : 'bg-blue-600 text-white hover:bg-blue-700'
                     }`}
                   >
-                    {isUpgrading ? 'Processing...' : isCurrentPlan ? 'Current Plan' : isFree ? 'Free Plan' : 'Upgrade'}
+                    {isUpgrading ? 'Processing...' : 
+                     isCurrentPlan ? 'Current Plan' : 
+                     isFree ? 'Free Plan' : 
+                     isDowngrade ? 'Downgrade' : 
+                     'Upgrade'}
                   </button>
                 </div>
               );
