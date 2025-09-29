@@ -13,10 +13,10 @@ export interface SessionData {
 }
 
 export class SessionManager {
-  private static readonly SESSION_COOKIE_NAME = 'edgar_session';
+  static readonly SESSION_COOKIE_NAME = 'edgar_session';
   
   static async createSession(sessionData: SessionData): Promise<string> {
-    const token = await new SignJWT(sessionData as any)
+    const token = await new SignJWT(sessionData as unknown as Record<string, unknown>)
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('7d') // 7 days
@@ -29,7 +29,7 @@ export class SessionManager {
     try {
       const { payload } = await jwtVerify(token, secret);
       return payload as unknown as SessionData;
-    } catch (error) {
+    } catch {
       return null;
     }
   }

@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { container } from "@/lib/container";
-import { UsageTrackingService } from "@/services/UsageTrackingService";
+import { UsageTrackingService } from "@/services/rate-limiting/UsageTrackingService";
 import { LoggingService } from "@/services/LoggingService";
-import { RateLimitMiddleware } from "@/middleware/RateLimitMiddleware";
+import { RateLimitMiddleware, RateLimitResult } from "@/middleware/RateLimitMiddleware";
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
   const loggingService = container.resolve(LoggingService);
-  let rateLimitResult: any = null;
+  let rateLimitResult: RateLimitResult | null = null;
 
   try {
     // Check rate limits first
@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Track usage
-    if (rateLimitResult.apiKey && rateLimitResult.userId) {
+    if (rateLimitResult && rateLimitResult.apiKey && rateLimitResult.userId) {
       await RateLimitMiddleware.trackUsage(rateLimitResult.apiKey, rateLimitResult.userId, response, startTime, "/api/v1/usage");
     }
 
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
     );
 
     // Track usage even for failed requests
-    if (rateLimitResult.apiKey && rateLimitResult.userId) {
+    if (rateLimitResult && rateLimitResult.apiKey && rateLimitResult.userId) {
       await RateLimitMiddleware.trackUsage(rateLimitResult.apiKey, rateLimitResult.userId, errorResponse, startTime, "/api/v1/usage");
     }
 

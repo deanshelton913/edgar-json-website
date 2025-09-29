@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
-import { TosDataAccess } from '@/data-access';
-import { UserDataAccess } from '@/data-access';
-import { CookieAuthorizerService } from '@/services/CookieAuthorizerService';
+import { TosDataAccess } from '@/services/data-access/TosDataAccess';
+import { UserDataAccess } from '@/services/data-access/UserDataAccess';
+import { CookieAuthorizerService } from '@/services/authorizers/CookieAuthorizerService';
+import { handleRouteError } from '@/lib/errors';
+import { FailureByDesign } from '@/lib/errors/FailureByDesign';
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,32 +12,18 @@ export async function POST(request: NextRequest) {
     
     // Get the authenticated user's session using cookie authorization
     const cookieAuthorizer = container.resolve(CookieAuthorizerService);
-    const authResult = await cookieAuthorizer.authorizeRequest();
+    const authResult = await cookieAuthorizer.authorizeRequest(request);
 
     if (!authResult.success) {
       console.log('[TOS_AGREE] Authentication failed:', authResult.error);
-      return NextResponse.json(
-        { 
-          success: false,
-          error: 'Not authenticated',
-          message: 'Please log in to agree to terms of service'
-        },
-        { status: 401 }
-      );
+      throw FailureByDesign.unauthorized('Please log in to agree to terms of service');
     }
 
     const body = await request.json();
     const { tosVersion } = body;
 
     if (!tosVersion) {
-      return NextResponse.json(
-        { 
-          success: false,
-          error: 'Missing TOS version',
-          message: 'TOS version is required'
-        },
-        { status: 400 }
-      );
+      throw FailureByDesign.badRequest('TOS version is required');
     }
 
     console.log(`[TOS_AGREE] User ${authResult.userId} agreeing to TOS version ${tosVersion}`);
@@ -46,14 +34,7 @@ export async function POST(request: NextRequest) {
     
     if (!userData) {
       console.log(`[TOS_AGREE] User not found in database: ${authResult.userId}`);
-      return NextResponse.json(
-        { 
-          success: false,
-          error: 'User not found',
-          message: 'User account not found. Please contact support.'
-        },
-        { status: 404 }
-      );
+      throw FailureByDesign.notFound('User account not found. Please contact support.');
     }
     
     console.log(`[TOS_AGREE] Found user in database with ID: ${userData.id}`);
@@ -99,16 +80,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('[TOS_AGREE] Error processing TOS agreement:', error);
-    
-    return NextResponse.json(
-      { 
-        success: false,
-        error: 'Internal server error', 
-        message: error instanceof Error ? error.message : 'Unknown error' 
-      },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'TOS_AGREE_POST_ROUTE');
   }
 }
 
@@ -116,20 +88,21 @@ export async function GET(request: NextRequest) {
   try {
     console.log('[TOS_AGREE] Getting TOS agreement status');
     
+    // Log request details for debugging
+    const userAgent = request.headers.get('user-agent') || 'unknown';
+    const ipAddress = request.headers.get('x-forwarded-for') || 
+                     request.headers.get('x-real-ip') || 
+                     'unknown';
+    
+    console.log(`[TOS_AGREE] GET request from IP: ${ipAddress}, User-Agent: ${userAgent}`);
+    
     // Get the authenticated user's session using cookie authorization
     const cookieAuthorizer = container.resolve(CookieAuthorizerService);
-    const authResult = await cookieAuthorizer.authorizeRequest();
+    const authResult = await cookieAuthorizer.authorizeRequest(request);
 
     if (!authResult.success) {
       console.log('[TOS_AGREE] Authentication failed:', authResult.error);
-      return NextResponse.json(
-        { 
-          success: false,
-          error: 'Not authenticated',
-          message: 'Please log in to check terms of service status'
-        },
-        { status: 401 }
-      );
+      throw FailureByDesign.unauthorized('Please log in to check terms of service status');
     }
 
     // Get the user's database record using the numeric ID
@@ -138,14 +111,7 @@ export async function GET(request: NextRequest) {
     
     if (!userData) {
       console.log(`[TOS_AGREE] User not found in database: ${authResult.userId}`);
-      return NextResponse.json(
-        { 
-          success: false,
-          error: 'User not found',
-          message: 'User account not found. Please contact support.'
-        },
-        { status: 404 }
-      );
+      throw FailureByDesign.notFound('User account not found. Please contact support.');
     }
     
     console.log(`[TOS_AGREE] Found user in database with ID: ${userData.id}`);
@@ -173,15 +139,6 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('[TOS_AGREE] Error getting TOS agreement status:', error);
-    
-    return NextResponse.json(
-      { 
-        success: false,
-        error: 'Internal server error', 
-        message: error instanceof Error ? error.message : 'Unknown error' 
-      },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'TOS_AGREE_GET_ROUTE');
   }
 }

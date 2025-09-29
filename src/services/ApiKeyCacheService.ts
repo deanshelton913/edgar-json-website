@@ -1,9 +1,9 @@
 import { injectable, inject } from "tsyringe";
 import { createClient, RedisClientType } from 'redis';
-import type { LoggingService } from "./LoggingService";
-import { ApiKeyDataAccess } from "@/data-access/ApiKeyDataAccess";
-import { SubscriptionDataAccess } from "@/data-access/SubscriptionDataAccess";
-import { PlanConfigurationService } from "./PlanConfigurationService";
+import type { LoggingService } from "@/services/LoggingService";
+import { ApiKeyDataAccess } from "@/services/data-access/ApiKeyDataAccess";
+import { SubscriptionDataAccess } from "@/services/data-access/SubscriptionDataAccess";
+import { PlanConfigurationService } from "@/services/PlanConfigurationService";
 
 export interface ApiKeyInfo {
   id: number;

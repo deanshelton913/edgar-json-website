@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { container } from "@/lib/container";
-import { SecParserService } from "@/services/SecParserService";
+import { SecParserService } from "@/services/parsing/SecParserService";
 import { LoggingService } from "@/services/LoggingService";
-import { RateLimitMiddleware } from "@/middleware/RateLimitMiddleware";
+import { RateLimitMiddleware, RateLimitResult } from "@/middleware/RateLimitMiddleware";
 
 export async function GET(
   request: NextRequest,
@@ -10,7 +10,7 @@ export async function GET(
 ) {
   const startTime = Date.now();
   const loggingService = container.resolve(LoggingService);
-  let rateLimitResult: any = null;
+  let rateLimitResult: RateLimitResult | null = null;
 
   try {
     // Await params before using them
@@ -76,7 +76,7 @@ export async function GET(
     });
 
     // Track usage after successful response
-    if (rateLimitResult.apiKey && rateLimitResult.userId) {
+    if (rateLimitResult && rateLimitResult.apiKey && rateLimitResult.userId) {
       await RateLimitMiddleware.trackUsage(rateLimitResult.apiKey, rateLimitResult.userId, response, startTime, "/api/v1/filings");
     }
 
@@ -99,7 +99,7 @@ export async function GET(
     );
 
     // Track usage even for failed requests
-    if (rateLimitResult.apiKey && rateLimitResult.userId) {
+    if (rateLimitResult && rateLimitResult.apiKey && rateLimitResult.userId) {
       await RateLimitMiddleware.trackUsage(rateLimitResult.apiKey, rateLimitResult.userId, errorResponse, startTime, "/api/v1/filings");
     }
 

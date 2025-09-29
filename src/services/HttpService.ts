@@ -42,7 +42,7 @@ export class HttpService {
     return fileResponse;
   }
 
-  public async post(url: string, data: any, options: RequestInit = this.defaultProperties) {
+  public async post(url: string, data: Record<string, unknown>, options: RequestInit = this.defaultProperties) {
     const requestId = await this.deriveRequestId(url);
     this.loggingService.debug(`[HTTP][POST][${requestId}] > ${url}`);
     const requestOptions = {
@@ -63,7 +63,7 @@ export class HttpService {
     return response;
   }
 
-  public async put(url: string, data: any, options: RequestInit = this.defaultProperties) {
+  public async put(url: string, data: Record<string, unknown>, options: RequestInit = this.defaultProperties) {
     const requestId = await this.deriveRequestId(url);
     this.loggingService.debug(`[HTTP][PUT][${requestId}] > ${url}`);
     const requestOptions = {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
-import { StripeService } from '@/services/StripeService';
-import { StripeWebhookEvent, WebhookService } from '@/services/WebhookService';
+import { StripeService } from '@/services/stripe/StripeService';
+import { StripeWebhookEvent, WebhookService } from '@/services/stripe/WebhookService';
 import { LoggingService } from '@/services/LoggingService';
 
 export async function POST(request: NextRequest) {

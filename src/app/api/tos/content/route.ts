@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
-import { TosDataAccess } from '@/data-access';
+import { TosDataAccess } from '@/services/data-access/TosDataAccess';
+import { handleRouteError } from '@/lib/errors';
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,15 +23,6 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('[TOS_CONTENT] Error getting TOS content:', error);
-    
-    return NextResponse.json(
-      { 
-        success: false,
-        error: 'Internal server error', 
-        message: error instanceof Error ? error.message : 'Unknown error' 
-      },
-      { status: 500 }
-    );
+    return handleRouteError(error, 'TOS_CONTENT_ROUTE');
   }
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { handleRouteError } from "@/lib/errors";
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,12 +26,6 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("Configuration check error:", error);
-    
-    return NextResponse.json({
-      success: false,
-      error: "Configuration check failed",
-      message: error instanceof Error ? error.message : "Unknown error",
-    }, { status: 500 });
+    return handleRouteError(error, 'CONFIG_CHECK_ROUTE');
   }
 }

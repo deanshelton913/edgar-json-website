@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { container } from '@/lib/container';
-import { AuthenticationService } from '@/services/AuthenticationService';
+import { AuthCallbackRouteService } from '@/services/routes/AuthCallbackRouteService';
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('[CALLBACK] Starting callback processing');
-    console.log('[CALLBACK] Request URL:', request.url);
-    console.log('[CALLBACK] Search params:', new URL(request.url).searchParams.toString());
-    
-    const authService = container.resolve(AuthenticationService);
-    const result = await authService.processGoogleCallback(request);
-
-    console.log('[CALLBACK] Auth result:', result);
+    const authCallbackRouteService = container.resolve(AuthCallbackRouteService);
+    const result = await authCallbackRouteService.getInvokeV1(request);
 
     if (!result.success) {
       console.log('[CALLBACK] Auth failed, redirecting to:', result.redirectUrl);
@@ -20,7 +14,7 @@ export async function GET(request: NextRequest) {
 
     console.log('[CALLBACK] Auth successful, creating authenticated response');
     // Create authenticated response with session cookie
-    return await authService.createAuthenticatedResponse(
+    return await authCallbackRouteService.createAuthenticatedResponse(
       result.sessionData!,
       result.redirectUrl!,
       request
@@ -28,11 +22,6 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('[CALLBACK] Callback error:', error);
-    console.error('[CALLBACK] Error details:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-      name: error instanceof Error ? error.name : undefined
-    });
     return NextResponse.redirect(
       new URL('/?error=callback_error', request.url)
     );

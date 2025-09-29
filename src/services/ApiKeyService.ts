@@ -1,7 +1,7 @@
 import { injectable, inject } from "tsyringe";
-import { ApiKeyDataAccess, ApiKeyData } from "@/data-access/ApiKeyDataAccess";
-import { SubscriptionDataAccess, SubscriptionData } from "@/data-access/SubscriptionDataAccess";
-import { PlanConfigurationService, PlanLimits } from "@/services/PlanConfigurationService";
+import { ApiKeyDataAccess, ApiKeyData } from "@/services/data-access/ApiKeyDataAccess";
+import { SubscriptionDataAccess } from "@/services/data-access/SubscriptionDataAccess";
+import { PlanConfigurationService } from "@/services/PlanConfigurationService";
 import { LoggingService } from "@/services/LoggingService";
 
 export interface ApiKeyWithTierData extends ApiKeyData {

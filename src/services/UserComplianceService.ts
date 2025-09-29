@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
-import { TosDataAccess } from "@/data-access";
-import { UserDataAccess } from "@/data-access";
+import { TosDataAccess } from "@/services/data-access";
+import { UserDataAccess } from "@/services/data-access";
 import type { LoggingService } from "@/services/LoggingService";
 
 export interface ComplianceRequirement {
