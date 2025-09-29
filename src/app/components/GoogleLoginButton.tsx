@@ -23,7 +23,7 @@ export default function GoogleLoginButton() {
       
       let redirectUri;
       if (isDevelopment) {
-        redirectUri = `http://localhost:${window.location.port}/api/auth/callback`;
+        redirectUri = `http://localhost:3000/api/auth/callback`;
       } else if (hostname === 'www.edgar-json.com' || hostname === 'edgar-json.com') {
         // Always use www.edgar-json.com for production consistency
         redirectUri = `https://www.edgar-json.com/api/auth/callback`;

@@ -67,20 +67,29 @@ export async function POST(request: NextRequest) {
     // Cancel subscription in Stripe (skip if it's a test subscription)
     if (subscription.stripeSubscriptionId.startsWith('test_')) {
       loggingService.debug(`[CANCEL_SUBSCRIPTION] Skipping Stripe cancellation for test subscription: ${subscription.stripeSubscriptionId}`);
+      // For test subscriptions, update the database directly
+      await subscriptionDataAccess.updateSubscriptionStatus(
+        subscription.stripeSubscriptionId,
+        'active', // Still active until period end
+        subscription.currentPeriodStart,
+        subscription.currentPeriodEnd,
+        true, // cancelAtPeriodEnd = true
+        undefined // canceledAt stays undefined until period actually ends
+      );
     } else {
       const stripeService = container.resolve(StripeService);
-      await stripeService.cancelSubscription(subscription.stripeSubscriptionId);
+      const updatedSubscription = await stripeService.cancelSubscription(subscription.stripeSubscriptionId);
+      
+      // Update subscription status in database with the actual Stripe data
+      await subscriptionDataAccess.updateSubscriptionStatus(
+        subscription.stripeSubscriptionId,
+        updatedSubscription.status as any,
+        new Date(updatedSubscription.current_period_start * 1000),
+        new Date(updatedSubscription.current_period_end * 1000),
+        updatedSubscription.cancel_at_period_end,
+        updatedSubscription.canceled_at ? new Date(updatedSubscription.canceled_at * 1000) : undefined
+      );
     }
-
-    // Update subscription status in database
-    await subscriptionDataAccess.updateSubscriptionStatus(
-      subscription.stripeSubscriptionId,
-      'active', // Still active until period end
-      subscription.currentPeriodStart,
-      subscription.currentPeriodEnd,
-      true, // cancelAtPeriodEnd = true
-      undefined // canceledAt stays undefined until period actually ends
-    );
 
         loggingService.debug(`[CANCEL_SUBSCRIPTION] Subscription canceled for user: ${userDbId}`);
 

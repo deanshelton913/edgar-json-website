@@ -47,10 +47,15 @@ export class AuthenticationService {
   async processGoogleCallback(request: NextRequest): Promise<AuthResult> {
     try {
       this.loggingService.debug('[AUTH_SERVICE] Processing Google OAuth callback');
+      console.log('[AUTH_SERVICE] Processing Google OAuth callback');
+      console.log('[AUTH_SERVICE] Request URL:', request.url);
 
       const { searchParams } = new URL(request.url);
       const code = searchParams.get('code');
       const error = searchParams.get('error');
+      
+      console.log('[AUTH_SERVICE] Code:', code ? 'present' : 'missing');
+      console.log('[AUTH_SERVICE] Error:', error);
       
       // Handle OAuth errors
       if (error) {
@@ -73,14 +78,17 @@ export class AuthenticationService {
       }
 
       // Exchange code for tokens
+      console.log('[AUTH_SERVICE] Exchanging code for tokens');
       const tokens = await this.exchangeCodeForTokens(code, request);
       if (!tokens) {
+        console.log('[AUTH_SERVICE] Token exchange failed');
         return {
           success: false,
           redirectUrl: '/?error=token_exchange_failed',
           error: 'Token exchange failed'
         };
       }
+      console.log('[AUTH_SERVICE] Token exchange successful');
 
       // Get user info from Google
       const userInfo = await this.getGoogleUserInfo(tokens.access_token);
@@ -175,6 +183,9 @@ export class AuthenticationService {
     try {
       const redirectUri = this.getRedirectUri(request);
       this.loggingService.debug('[AUTH_SERVICE] Using redirect URI:', redirectUri);
+      console.log('[AUTH_SERVICE] Using redirect URI:', redirectUri);
+      console.log('[AUTH_SERVICE] Client ID:', process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ? 'present' : 'missing');
+      console.log('[AUTH_SERVICE] Client Secret:', process.env.GOOGLE_OAUTH_CLIENT_SECRET ? 'present' : 'missing');
 
       const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
@@ -193,6 +204,8 @@ export class AuthenticationService {
       if (!tokenResponse.ok) {
         const errorText = await tokenResponse.text();
         this.loggingService.error('[AUTH_SERVICE] Token exchange failed:', errorText);
+        console.log('[AUTH_SERVICE] Token exchange failed:', errorText);
+        console.log('[AUTH_SERVICE] Response status:', tokenResponse.status);
         return null;
       }
 

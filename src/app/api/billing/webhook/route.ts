@@ -156,6 +156,9 @@ async function handleSubscriptionUpdated(subscription: StripeWebhookEvent['data'
   
   try {
     loggingService.debug(`[STRIPE_WEBHOOK] Subscription updated: ${subscription.id}`);
+    loggingService.debug(`[STRIPE_WEBHOOK] Subscription status: ${subscription.status}`);
+    loggingService.debug(`[STRIPE_WEBHOOK] Cancel at period end: ${subscription.cancel_at_period_end}`);
+    loggingService.debug(`[STRIPE_WEBHOOK] Canceled at: ${subscription.canceled_at}`);
     loggingService.debug(`[STRIPE_WEBHOOK] Subscription metadata:`, JSON.stringify(subscription.metadata, null, 2));
     
     const subscriptionDataAccess = container.resolve(SubscriptionDataAccess);

@@ -354,6 +354,78 @@ export default function Billing() {
           </div>
         )}
 
+        {/* Available Plans */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-6">Available Plans</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {plans.map((plan) => {
+              const isCurrentPlan = currentSubscription?.planId === plan.id;
+              const isFree = plan.id === 'free';
+              
+              return (
+                <div
+                  key={plan.id}
+                  className={`relative bg-white rounded-lg shadow-sm border-2 p-6 ${
+                    plan.popular ? 'border-blue-500' : 'border-gray-200'
+                  } ${isCurrentPlan ? 'ring-2 ring-green-500' : ''}`}
+                >
+                  {plan.popular && (
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                        Most Popular
+                      </span>
+                    </div>
+                  )}
+                  
+                  {isCurrentPlan && (
+                    <div className="absolute -top-3 right-4">
+                      <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                        Current Plan
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="text-center mb-6">
+                    <h3 className="text-xl font-semibold text-gray-900">{plan.name}</h3>
+                    <div className="mt-2">
+                      <span className="text-4xl font-bold text-gray-900">
+                        ${plan.price}
+                      </span>
+                      <span className="text-gray-600">/{plan.interval}</span>
+                    </div>
+                  </div>
+
+                  <ul className="space-y-3 mb-6">
+                    {plan.features.map((feature, index) => (
+                      <li key={index} className="flex items-start">
+                        <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-sm text-gray-600">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button
+                    onClick={() => handleUpgrade(plan.id)}
+                    disabled={isCurrentPlan || isFree || isUpgrading}
+                    className={`w-full py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                      isCurrentPlan
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : isFree
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
+                  >
+                    {isUpgrading ? 'Processing...' : isCurrentPlan ? 'Current Plan' : isFree ? 'Free Plan' : 'Upgrade'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Current Subscription */}
           <div className="lg:col-span-2">
@@ -503,78 +575,6 @@ export default function Billing() {
                 </div>
               )}
             </div>
-          </div>
-        </div>
-
-        {/* Available Plans */}
-        <div className="mt-8">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">Available Plans</h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {plans.map((plan) => {
-              const isCurrentPlan = currentSubscription?.planId === plan.id;
-              const isFree = plan.id === 'free';
-              
-              return (
-                <div
-                  key={plan.id}
-                  className={`relative bg-white rounded-lg shadow-sm border-2 p-6 ${
-                    plan.popular ? 'border-blue-500' : 'border-gray-200'
-                  } ${isCurrentPlan ? 'ring-2 ring-green-500' : ''}`}
-                >
-                  {plan.popular && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                        Most Popular
-                      </span>
-                    </div>
-                  )}
-                  
-                  {isCurrentPlan && (
-                    <div className="absolute -top-3 right-4">
-                      <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
-                        Current Plan
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="text-center mb-6">
-                    <h3 className="text-xl font-semibold text-gray-900">{plan.name}</h3>
-                    <div className="mt-2">
-                      <span className="text-4xl font-bold text-gray-900">
-                        ${plan.price}
-                      </span>
-                      <span className="text-gray-600">/{plan.interval}</span>
-                    </div>
-                  </div>
-
-                  <ul className="space-y-3 mb-6">
-                    {plan.features.map((feature, index) => (
-                      <li key={index} className="flex items-start">
-                        <svg className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                        <span className="text-sm text-gray-600">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <button
-                    onClick={() => handleUpgrade(plan.id)}
-                    disabled={isCurrentPlan || isFree || isUpgrading}
-                    className={`w-full py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                      isCurrentPlan
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : isFree
-                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
-                    }`}
-                  >
-                    {isUpgrading ? 'Processing...' : isCurrentPlan ? 'Current Plan' : isFree ? 'Free Plan' : 'Upgrade'}
-                  </button>
-                </div>
-              );
-            })}
           </div>
         </div>
       </div>

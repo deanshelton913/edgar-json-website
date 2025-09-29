@@ -42,7 +42,7 @@ export const rateLimits = pgTable('rate_limits', {
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   cuid: varchar('cuid', { length: 128 }).notNull().unique().$defaultFn(() => createId()),
-  googleId: varchar('google_id', { length: 255 }).notNull().unique(),
+  googleId: varchar('google_id', { length: 255 }).notNull().unique(), // Using existing user_id column
   email: varchar('email', { length: 255 }).notNull().unique(),
   name: varchar('name', { length: 255 }),
   provider: varchar('provider', { length: 50 }).default('google').notNull(),

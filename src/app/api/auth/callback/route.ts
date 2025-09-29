@@ -4,13 +4,21 @@ import { AuthenticationService } from '@/services/AuthenticationService';
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('[CALLBACK] Starting callback processing');
+    console.log('[CALLBACK] Request URL:', request.url);
+    console.log('[CALLBACK] Search params:', new URL(request.url).searchParams.toString());
+    
     const authService = container.resolve(AuthenticationService);
     const result = await authService.processGoogleCallback(request);
 
+    console.log('[CALLBACK] Auth result:', result);
+
     if (!result.success) {
+      console.log('[CALLBACK] Auth failed, redirecting to:', result.redirectUrl);
       return NextResponse.redirect(new URL(result.redirectUrl!, request.url));
     }
 
+    console.log('[CALLBACK] Auth successful, creating authenticated response');
     // Create authenticated response with session cookie
     return await authService.createAuthenticatedResponse(
       result.sessionData!,
@@ -19,8 +27,8 @@ export async function GET(request: NextRequest) {
     );
 
   } catch (error) {
-    console.error('Callback error:', error);
-    console.error('Error details:', {
+    console.error('[CALLBACK] Callback error:', error);
+    console.error('[CALLBACK] Error details:', {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
       name: error instanceof Error ? error.name : undefined

@@ -61,9 +61,14 @@ export default function Navigation() {
             Api Key
           </Link>
           {isAuthenticated && (
-            <Link href="/usage-stats" className="text-gray-700 hover:text-blue-600">
-              Usage Stats
-            </Link>
+            <>
+              <Link href="/usage-stats" className="text-gray-700 hover:text-blue-600">
+                Usage Stats
+              </Link>
+              <Link href="/billing" className="text-gray-700 hover:text-blue-600">
+                Billing
+              </Link>
+            </>
           )}
           <Link href="/docs" className="text-gray-700 hover:text-blue-600">
             Docs
