@@ -11,13 +11,10 @@ export interface ApiKeyInfo {
   apiKey: string;
   userId: number;
   email: string;
-  currentTier: string;
   usageCount: number;
   createdAt: Date;
   lastUsed: Date | null;
   isActive: boolean;
-  requestsPerMinute: number;
-  requestsPerDay: number;
 }
 
 @injectable()
@@ -128,13 +125,10 @@ export class ApiKeyCacheService {
         apiKey: apiKeyData.apiKey,
         userId: apiKeyData.userId,
         email: apiKeyData.email,
-        currentTier: apiKeyData.currentTier,
         usageCount: apiKeyData.usageCount,
         createdAt: apiKeyData.createdAt,
-        lastUsed: apiKeyData.lastUsed,
+        lastUsed: apiKeyData.lastUsed || null,
         isActive: apiKeyData.isActive,
-        requestsPerMinute: apiKeyData.requestsPerMinute || 10,
-        requestsPerDay: apiKeyData.requestsPerDay || 100,
       };
 
       // Cache the result
@@ -158,13 +152,10 @@ export class ApiKeyCacheService {
           apiKey: apiKeyData.apiKey,
           userId: apiKeyData.userId,
           email: apiKeyData.email,
-          currentTier: apiKeyData.currentTier,
           usageCount: apiKeyData.usageCount,
           createdAt: apiKeyData.createdAt,
-          lastUsed: apiKeyData.lastUsed,
+          lastUsed: apiKeyData.lastUsed || null,
           isActive: apiKeyData.isActive,
-          requestsPerMinute: apiKeyData.requestsPerMinute || 10,
-          requestsPerDay: apiKeyData.requestsPerDay || 100,
         };
       } catch (dbError) {
         this.loggingService.error(`[API_KEY_CACHE] Database fallback failed for ${apiKey}:`, dbError);

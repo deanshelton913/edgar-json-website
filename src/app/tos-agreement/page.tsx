@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 interface TosContentData {
@@ -10,7 +10,7 @@ interface TosContentData {
   isCurrentVersion: boolean;
 }
 
-export default function TosAgreement() {
+function TosAgreementContent() {
   const [isAgreeing, setIsAgreeing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [tosData, setTosData] = useState<TosContentData | null>(null);
@@ -169,5 +169,20 @@ export default function TosAgreement() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function TosAgreement() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg text-gray-700">Loading Terms of Service...</p>
+        </div>
+      </div>
+    }>
+      <TosAgreementContent />
+    </Suspense>
   );
 }

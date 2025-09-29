@@ -124,8 +124,8 @@ export class RedisRateLimitService {
       
       const results = await pipeline.exec();
       
-      const minuteCount = results?.[0] ? parseInt(results[0] as string) || 0 : 0;
-      const dayCount = results?.[1] ? parseInt(results[1] as string) || 0 : 0;
+      const minuteCount = results?.[0] ? parseInt(results[0] as unknown as string) || 0 : 0;
+      const dayCount = results?.[1] ? parseInt(results[1] as unknown as string) || 0 : 0;
 
       const isLimited = minuteCount >= rateLimitConfig.requestsPerMinute || dayCount >= rateLimitConfig.requestsPerDay;
 
@@ -219,7 +219,7 @@ export class RedisRateLimitService {
       const minuteKey = this.getMinuteKey(apiKey, now);
       const dayKey = this.getDayKey(apiKey, now);
 
-      await this.redis.del(minuteKey, dayKey);
+      await this.redis.del([minuteKey, dayKey]);
       
       this.loggingService.debug(`[REDIS_RATE_LIMIT] Reset rate limit counters for ${apiKey}`);
 

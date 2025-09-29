@@ -1,7 +1,8 @@
 import { injectable, inject } from "tsyringe";
-import { eq, and, desc, gte, lte } from "drizzle-orm";
-import { db, apiUsage, rateLimits } from "@/db";
+import { eq, and, desc, gte } from "drizzle-orm";
+import { db, apiUsage } from "@/db";
 import { LoggingService } from "@/services/LoggingService";
+import crypto from 'crypto';
 
 export interface UsageRecord {
   id?: number;
@@ -92,47 +93,6 @@ export class UsageDataAccess {
       };
     } catch (error) {
       this.loggingService.error(`Error getting usage stats: ${error}`);
-      throw error;
-    }
-  }
-
-  async getRateLimitCount(key: string): Promise<number> {
-    try {
-      const result = await db
-        .select()
-        .from(rateLimits)
-        .where(eq(rateLimits.key, key))
-        .limit(1);
-
-      return result.length > 0 ? result[0].count : 0;
-    } catch (error) {
-      this.loggingService.error(`Error getting rate limit count: ${error}`);
-      throw error;
-    }
-  }
-
-  async incrementRateLimitCount(key: string, ttlSeconds: number): Promise<void> {
-    try {
-      this.loggingService.debug(`[USAGE_DATA_ACCESS] Incrementing rate limit count for key: ${key}, TTL: ${ttlSeconds}s`);
-      
-      const expiresAt = new Date(Date.now() + ttlSeconds * 1000);
-      
-      await db.insert(rateLimits).values({
-        cuid: crypto.randomUUID(), // Generate a unique ID
-        key,
-        count: 1,
-        expiresAt,
-      }).onConflictDoUpdate({
-        target: rateLimits.key,
-        set: {
-          count: rateLimits.count + 1,
-          expiresAt,
-        },
-      });
-      
-      this.loggingService.debug(`[USAGE_DATA_ACCESS] Successfully incremented rate limit count for key: ${key}`);
-    } catch (error) {
-      this.loggingService.error(`[USAGE_DATA_ACCESS] Error incrementing rate limit count: ${error}`);
       throw error;
     }
   }

@@ -10,6 +10,7 @@ export async function GET(
 ) {
   const startTime = Date.now();
   const loggingService = container.resolve(LoggingService);
+  let rateLimitResult: any = null;
 
   try {
     // Await params before using them
@@ -18,7 +19,7 @@ export async function GET(
     loggingService.debug(`[FILING_API] Starting request for CIK: ${cik}, Accession: ${accession}, Filename: ${filename}`);
     
     // Check rate limits first (now uses subscription-based limits)
-    const rateLimitResult = await RateLimitMiddleware.checkRateLimit(request, {
+    rateLimitResult = await RateLimitMiddleware.checkRateLimit(request, {
       trackUsage: true,
     });
 

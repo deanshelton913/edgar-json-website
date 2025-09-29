@@ -107,14 +107,11 @@ export async function POST(request: NextRequest) {
 
     // Update API key tier
     const apiKeyDataAccess = container.resolve(ApiKeyDataAccess);
-    const apiKeyCacheService = container.resolve('ApiKeyCacheService');
+    const apiKeyCacheService = container.resolve(ApiKeyCacheService);
     
     // Get user's current API key info
     const currentApiKey = await apiKeyDataAccess.getApiKeyByUserId(user.id);
     if (currentApiKey) {
-      // Update API key tier to pro
-      await apiKeyDataAccess.updateApiKeyTier(user.id, 'pro', 100, 10000);
-      
       // Clear the cache so new limits take effect immediately
       await apiKeyCacheService.invalidateApiKey(currentApiKey.apiKey);
     }

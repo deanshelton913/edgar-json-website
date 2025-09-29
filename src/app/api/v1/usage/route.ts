@@ -7,17 +7,16 @@ import { RateLimitMiddleware } from "@/middleware/RateLimitMiddleware";
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
   const loggingService = container.resolve(LoggingService);
+  let rateLimitResult: any = null;
 
   try {
     // Check rate limits first
-    const rateLimitResponse = await RateLimitMiddleware.checkRateLimit(request, {
-      requestsPerMinute: 5, // Lower limit for stats endpoint
-      requestsPerDay: 50,
+    rateLimitResult = await RateLimitMiddleware.checkRateLimit(request, {
       trackUsage: true,
     });
 
-    if (rateLimitResponse) {
-      return rateLimitResponse;
+    if (!rateLimitResult.allowed) {
+      return rateLimitResult.response!;
     }
 
     // Extract API key from headers
@@ -64,7 +63,9 @@ export async function GET(request: NextRequest) {
     });
 
     // Track usage
-    await RateLimitMiddleware.trackUsage(request, response, startTime, "/api/v1/usage");
+    if (rateLimitResult.apiKey && rateLimitResult.userId) {
+      await RateLimitMiddleware.trackUsage(rateLimitResult.apiKey, rateLimitResult.userId, response, startTime, "/api/v1/usage");
+    }
 
     return response;
 
@@ -85,7 +86,9 @@ export async function GET(request: NextRequest) {
     );
 
     // Track usage even for failed requests
-    await RateLimitMiddleware.trackUsage(request, errorResponse, startTime, "/api/v1/usage");
+    if (rateLimitResult.apiKey && rateLimitResult.userId) {
+      await RateLimitMiddleware.trackUsage(rateLimitResult.apiKey, rateLimitResult.userId, errorResponse, startTime, "/api/v1/usage");
+    }
 
     return errorResponse;
   }

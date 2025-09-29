@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface UsageStats {
   period: {
@@ -36,50 +36,8 @@ export default function UsageStatsPage() {
   const [usageData, setUsageData] = useState<UsageData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [days, setDays] = useState(30);
-  const [apiKey, setApiKey] = useState<string>('');
 
-  // Get user info and fetch usage stats
-  useEffect(() => {
-    const getUserInfo = async () => {
-      try {
-        // Get user info from secure cookies via API
-        const response = await fetch('/api/auth/user');
-        
-        if (!response.ok) {
-          setError('Please log in to view usage statistics');
-          setIsLoading(false);
-          return;
-        }
-
-        const data = await response.json();
-        
-        if (data.authenticated) {
-          // Get API key for display purposes
-          const apiKeyResponse = await fetch('/api/api-key');
-          if (apiKeyResponse.ok) {
-            const apiKeyData = await apiKeyResponse.json();
-            if (apiKeyData.success) {
-              setApiKey(apiKeyData.data.apiKey);
-            }
-          }
-          
-          // Fetch usage stats using cookie authentication
-          await fetchUsageStats();
-        } else {
-          setError('Please log in to view usage statistics');
-        }
-      } catch (error) {
-        console.error('Error getting user info:', error);
-        setError('Failed to get user information');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    getUserInfo();
-  }, []);
-
-  const fetchUsageStats = async () => {
+  const fetchUsageStats = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -106,7 +64,39 @@ export default function UsageStatsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [days]);
+
+  // Get user info and fetch usage stats
+  useEffect(() => {
+    const getUserInfo = async () => {
+      try {
+        // Get user info from secure cookies via API
+        const response = await fetch('/api/auth/user');
+        
+        if (!response.ok) {
+          setError('Please log in to view usage statistics');
+          setIsLoading(false);
+          return;
+        }
+
+        const data = await response.json();
+        
+        if (data.authenticated) {
+          // Fetch usage stats using cookie authentication
+          await fetchUsageStats();
+        } else {
+          setError('Please log in to view usage statistics');
+        }
+      } catch (error) {
+        console.error('Error getting user info:', error);
+        setError('Failed to get user information');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getUserInfo();
+  }, [fetchUsageStats]);
 
   const handleDaysChange = (newDays: number) => {
     setDays(newDays);

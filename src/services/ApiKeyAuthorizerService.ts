@@ -74,7 +74,7 @@ export class ApiKeyAuthorizerService {
 
       return {
         success: true,
-        userId: apiKeyRecord.userId,
+        userId: apiKeyRecord.userId.toString(),
         email: apiKeyRecord.email,
         apiKey: apiKeyRecord.apiKey,
       };

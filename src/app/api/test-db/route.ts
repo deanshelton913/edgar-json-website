@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "../../db";
+import { NextResponse } from "next/server";
+import { db } from "../../../db";
 import { sql } from "drizzle-orm";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Test database connection
     const result = await db.execute(sql`SELECT NOW() as current_time`);

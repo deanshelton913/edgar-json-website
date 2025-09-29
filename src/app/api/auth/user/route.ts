@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   
   try {
     const cookieAuthorizer = container.resolve(CookieAuthorizerService);
-    const authResult = await cookieAuthorizer.authorizeRequest(request);
+    const authResult = await cookieAuthorizer.authorizeRequest();
 
     if (!authResult.success) {
       console.log('[AUTH_USER] Authentication failed:', authResult.error);

@@ -16,7 +16,7 @@ export class SessionManager {
   private static readonly SESSION_COOKIE_NAME = 'edgar_session';
   
   static async createSession(sessionData: SessionData): Promise<string> {
-    const token = await new SignJWT(sessionData)
+    const token = await new SignJWT(sessionData as any)
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
       .setExpirationTime('7d') // 7 days
@@ -28,7 +28,7 @@ export class SessionManager {
   static async verifySession(token: string): Promise<SessionData | null> {
     try {
       const { payload } = await jwtVerify(token, secret);
-      return payload as SessionData;
+      return payload as unknown as SessionData;
     } catch (error) {
       return null;
     }

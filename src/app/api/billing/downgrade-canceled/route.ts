@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
     // Downgrade API key to free tier
     const apiKeyDataAccess = container.resolve(ApiKeyDataAccess);
-    const apiKeyCacheService = container.resolve('ApiKeyCacheService');
+    const apiKeyCacheService = container.resolve(ApiKeyCacheService);
     
     // Get user's current API key info
     const currentApiKey = await apiKeyDataAccess.getApiKeyByUserId(userDbId);
@@ -71,13 +71,10 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Update API key tier to free
-    await apiKeyDataAccess.updateApiKeyTier(userDbId, 'free', 10, 100);
-    
     // Clear the cache so new limits take effect immediately
     await apiKeyCacheService.invalidateApiKey(currentApiKey.apiKey);
 
-    loggingService.debug(`[DOWNGRADE_CANCELED] Downgraded API key for user ${userDbId} to free tier`);
+    loggingService.debug(`[DOWNGRADE_CANCELED] Cleared API key cache for user ${userDbId} - tier now managed by subscription`);
 
     return NextResponse.json({
       success: true,

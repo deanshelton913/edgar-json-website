@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   try {
     // Authenticate using cookie-based authentication
     const cookieAuthorizer = container.resolve(CookieAuthorizerService);
-    const authResult = await cookieAuthorizer.authorizeRequest(request);
+    const authResult = await cookieAuthorizer.authorizeRequest();
 
     if (!authResult.success) {
       return NextResponse.json(

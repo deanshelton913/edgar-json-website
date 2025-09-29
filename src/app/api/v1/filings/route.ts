@@ -7,15 +7,16 @@ import { RateLimitMiddleware } from "@/middleware/RateLimitMiddleware";
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
   const loggingService = container.resolve(LoggingService);
+  let rateLimitResult: any = null;
 
   try {
     // Check rate limits first (now uses subscription-based limits)
-    const rateLimitResponse = await RateLimitMiddleware.checkRateLimit(request, {
+    rateLimitResult = await RateLimitMiddleware.checkRateLimit(request, {
       trackUsage: true,
     });
 
-    if (rateLimitResponse) {
-      return rateLimitResponse;
+    if (!rateLimitResult.allowed) {
+      return rateLimitResult.response!;
     }
 
     // Extract filing path from query parameters
@@ -46,7 +47,9 @@ export async function GET(request: NextRequest) {
     });
 
     // Track usage after successful response
-    await RateLimitMiddleware.trackUsage(request, response, startTime, "/api/parse");
+    if (rateLimitResult.apiKey && rateLimitResult.userId) {
+      await RateLimitMiddleware.trackUsage(rateLimitResult.apiKey, rateLimitResult.userId, response, startTime, "/api/v1/filings");
+    }
 
     return response;
 
@@ -67,7 +70,9 @@ export async function GET(request: NextRequest) {
     );
 
     // Track usage even for failed requests
-    await RateLimitMiddleware.trackUsage(request, errorResponse, startTime, "/api/parse");
+    if (rateLimitResult.apiKey && rateLimitResult.userId) {
+      await RateLimitMiddleware.trackUsage(rateLimitResult.apiKey, rateLimitResult.userId, errorResponse, startTime, "/api/v1/filings");
+    }
 
     return errorResponse;
   }
@@ -76,15 +81,16 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
   const loggingService = container.resolve(LoggingService);
+  let rateLimitResult: any = null;
 
   try {
     // Check rate limits first (now uses subscription-based limits)
-    const rateLimitResponse = await RateLimitMiddleware.checkRateLimit(request, {
+    rateLimitResult = await RateLimitMiddleware.checkRateLimit(request, {
       trackUsage: true,
     });
 
-    if (rateLimitResponse) {
-      return rateLimitResponse;
+    if (!rateLimitResult.allowed) {
+      return rateLimitResult.response!;
     }
 
     const body = await request.json();
@@ -114,7 +120,9 @@ export async function POST(request: NextRequest) {
       });
 
       // Track usage for test requests too
-      await RateLimitMiddleware.trackUsage(request, response, startTime, "/api/parse");
+      if (rateLimitResult.apiKey && rateLimitResult.userId) {
+        await RateLimitMiddleware.trackUsage(rateLimitResult.apiKey, rateLimitResult.userId, response, startTime, "/api/v1/filings");
+      }
 
       return response;
     }
@@ -143,7 +151,9 @@ export async function POST(request: NextRequest) {
     });
 
     // Track usage after successful response
-    await RateLimitMiddleware.trackUsage(request, response, startTime, "/api/parse");
+    if (rateLimitResult.apiKey && rateLimitResult.userId) {
+      await RateLimitMiddleware.trackUsage(rateLimitResult.apiKey, rateLimitResult.userId, response, startTime, "/api/v1/filings");
+    }
 
     return response;
 
@@ -164,7 +174,9 @@ export async function POST(request: NextRequest) {
     );
 
     // Track usage even for failed requests
-    await RateLimitMiddleware.trackUsage(request, errorResponse, startTime, "/api/parse");
+    if (rateLimitResult.apiKey && rateLimitResult.userId) {
+      await RateLimitMiddleware.trackUsage(rateLimitResult.apiKey, rateLimitResult.userId, errorResponse, startTime, "/api/v1/filings");
+    }
 
     return errorResponse;
   }
