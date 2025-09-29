@@ -361,7 +361,6 @@ export default function Billing() {
               const isCurrentPlan = currentSubscription?.planId === plan.id;
               const isFree = plan.id === 'free';
               const isDowngrade = currentSubscription?.planId === 'enterprise' && plan.id === 'pro';
-              const isUpgrade = currentSubscription?.planId === 'pro' && plan.id === 'enterprise';
               const showPopular = plan.popular && currentSubscription?.planId !== 'enterprise';
               
               return (
