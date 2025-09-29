@@ -232,15 +232,17 @@ export class AuthenticationService {
    */
   private getRedirectUri(request: NextRequest): string {
     const isDevelopment = request.url.includes('localhost');
-    const vercelUrl = process.env.NEXT_PUBLIC_VERCEL_URL;
+    const hostname = new URL(request.url).hostname;
     
     if (isDevelopment) {
       const url = new URL(request.url);
       return `http://localhost:${url.port}/api/auth/callback`;
-    } else if (vercelUrl) {
-      return `${vercelUrl}/api/auth/callback`;
+    } else if (hostname === 'www.edgar-json.com' || hostname === 'edgar-json.com') {
+      // Always use www.edgar-json.com for production consistency
+      return `https://www.edgar-json.com/api/auth/callback`;
     } else {
-      return `${new URL(request.url).origin}/api/auth/callback`;
+      // For Vercel preview URLs or other environments, use production domain
+      return `https://www.edgar-json.com/api/auth/callback`;
     }
   }
 }
