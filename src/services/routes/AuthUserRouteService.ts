@@ -1,5 +1,5 @@
 import { injectable, inject } from "tsyringe";
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { CookieAuthorizerService } from "../authorizers/CookieAuthorizerService";
 import { LoggingService } from "../LoggingService";
 

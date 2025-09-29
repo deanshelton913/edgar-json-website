@@ -94,6 +94,21 @@ export class ApiKeyCacheService {
   }
 
   /**
+   * Close Redis connection
+   */
+  async close(): Promise<void> {
+    if (this.client) {
+      try {
+        await this.client.quit();
+        this.isConnected = false;
+        this.loggingService.debug('[API_KEY_CACHE] Redis connection closed');
+      } catch (error) {
+        this.loggingService.error('[API_KEY_CACHE] Error closing Redis connection:', error);
+      }
+    }
+  }
+
+  /**
    * Get API key info with read-through caching
    */
   public async getApiKeyInfo(apiKey: string): Promise<ApiKeyInfo | null> {

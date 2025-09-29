@@ -37,6 +37,7 @@ import { GoogleAuthenticationService } from "@/services/authorizers/GoogleAuthen
 import { RedisRateLimitService } from "@/services/rate-limiting/RedisRateLimitService";
 import { UsageTrackingService } from "@/services/rate-limiting/UsageTrackingService";
 import { ApiKeyCacheService } from "@/services/ApiKeyCacheService";
+import { RedisConnectionManager } from "@/services/RedisConnectionManager";
 
 // Import stripe services
 import { StripeService } from "@/services/stripe/StripeService";
@@ -100,6 +101,7 @@ container.register("UserComplianceService", { useClass: UserComplianceService })
 container.register("RedisRateLimitService", { useClass: RedisRateLimitService });
 container.register("UsageTrackingService", { useClass: UsageTrackingService });
 container.register("ApiKeyCacheService", { useClass: ApiKeyCacheService });
+container.register("RedisConnectionManager", { useClass: RedisConnectionManager });
 
 // Register stripe services
 container.register("StripeService", { useClass: StripeService });
@@ -125,5 +127,8 @@ container.register("CreatePortalSessionRouteService", { useClass: CreatePortalSe
 container.register("DowngradeCanceledRouteService", { useClass: DowngradeCanceledRouteService });
 container.register("BillingSubscriptionRouteService", { useClass: BillingSubscriptionRouteService });
 container.register("ReactivateSubscriptionRouteService", { useClass: ReactivateSubscriptionRouteService });
+
+// Initialize Redis connection manager to setup shutdown handlers
+const redisConnectionManager = container.resolve(RedisConnectionManager);
 
 export { container };
