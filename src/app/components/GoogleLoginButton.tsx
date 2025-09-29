@@ -19,15 +19,16 @@ export default function GoogleLoginButton() {
       
       // Determine the correct callback URL
       const isDevelopment = window.location.hostname === 'localhost';
-      const vercelUrl = process.env.NEXT_PUBLIC_VERCEL_URL;
+      const isProduction = window.location.hostname === 'www.edgar-json.com' || window.location.hostname === 'edgar-json.com';
       
       let redirectUri;
       if (isDevelopment) {
         redirectUri = `http://localhost:${window.location.port}/api/auth/callback`;
-      } else if (vercelUrl) {
-        redirectUri = `${vercelUrl}/api/auth/callback`;
+      } else if (isProduction) {
+        redirectUri = `https://www.edgar-json.com/api/auth/callback`;
       } else {
-        redirectUri = `${window.location.origin}/api/auth/callback`;
+        // For Vercel preview URLs, use production domain
+        redirectUri = `https://www.edgar-json.com/api/auth/callback`;
       }
       
       const encodedRedirectUri = encodeURIComponent(redirectUri);
