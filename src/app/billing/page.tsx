@@ -74,8 +74,8 @@ export default function Billing() {
         '10,000 requests per day',
         '100 requests per minute',
         'Priority support',
-        'Advanced API access',
-        'Rate limit monitoring'
+        'Standard API access',
+        'Webhooks (coming soon)'
       ],
       popular: true
     },
@@ -90,9 +90,10 @@ export default function Billing() {
         '50,000 requests per day',
         '500 requests per minute',
         '24/7 dedicated support',
+        'Standard API access',
+        'Webhooks (coming soon)',
         'Custom integrations',
-        'SLA guarantee',
-        'Advanced analytics'
+        'SLA guarantee'
       ]
     }
   ];
