@@ -1,32 +1,36 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { container } from '@/lib/container';
 import { ApiKeyRouteService } from '@/services/routes/ApiKeyRouteService';
-import { handleRouteError } from '@/lib/errors';
+import { withRedisRouteHandlerJson } from '@/lib/route-handler';
 
 export async function GET(request: NextRequest) {
-  try {
-    const apiKeyRouteService = container.resolve(ApiKeyRouteService);
-    const result = await apiKeyRouteService.getInvokeV1(request);
-    
-    return NextResponse.json({
-      success: true,
-      data: result.data
-    });
-  } catch (error) {
-    return handleRouteError(error, 'API_KEY_GET_ROUTE');
-  }
+  return withRedisRouteHandlerJson(
+    request,
+    'API_KEY_GET_ROUTE',
+    async (req) => {
+      const apiKeyRouteService = container.resolve(ApiKeyRouteService);
+      const result = await apiKeyRouteService.getInvokeV1(req);
+      
+      return {
+        success: true,
+        data: result.data
+      };
+    }
+  );
 }
 
 export async function POST(request: NextRequest) {
-  try {
-    const apiKeyRouteService = container.resolve(ApiKeyRouteService);
-    const result = await apiKeyRouteService.postInvokeV1(request);
-    
-    return NextResponse.json({
-      success: true,
-      data: result.data
-    }, { status: 201 });
-  } catch (error) {
-    return handleRouteError(error, 'API_KEY_POST_ROUTE');
-  }
+  return withRedisRouteHandlerJson(
+    request,
+    'API_KEY_POST_ROUTE',
+    async (req) => {
+      const apiKeyRouteService = container.resolve(ApiKeyRouteService);
+      const result = await apiKeyRouteService.postInvokeV1(req);
+      
+      return {
+        success: true,
+        data: result.data
+      };
+    }
+  );
 }

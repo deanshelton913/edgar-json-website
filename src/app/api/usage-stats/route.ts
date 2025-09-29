@@ -1,13 +1,15 @@
 import { NextRequest } from "next/server";
 import { container } from "@/lib/container";
 import { UsageStatsRouteService } from "@/services/routes/UsageStatsRouteService";
-import { handleRouteError } from "@/lib/errors";
+import { withRedisRouteHandlerResponse } from "@/lib/route-handler";
 
 export async function GET(request: NextRequest) {
-  try {
-    const usageStatsRouteService = container.resolve(UsageStatsRouteService);
-    return await usageStatsRouteService.invokeV1(request);
-  } catch (error) {
-    return handleRouteError(error, 'USAGE_STATS_ROUTE');
-  }
+  return withRedisRouteHandlerResponse(
+    request,
+    'USAGE_STATS_ROUTE',
+    async (req) => {
+      const usageStatsRouteService = container.resolve(UsageStatsRouteService);
+      return await usageStatsRouteService.invokeV1(req);
+    }
+  );
 }

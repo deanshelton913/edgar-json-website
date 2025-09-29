@@ -1,18 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { container } from '@/lib/container';
 import { DowngradeCanceledRouteService } from '@/services/routes/DowngradeCanceledRouteService';
-import { handleRouteError } from '@/lib/errors';
+import { withRedisRouteHandlerJson } from '@/lib/route-handler';
 
 export async function POST(request: NextRequest) {
-  try {
-    const downgradeCanceledRouteService = container.resolve(DowngradeCanceledRouteService);
-    const result = await downgradeCanceledRouteService.postInvokeV1(request);
-    
-    return NextResponse.json({
-      success: true,
-      message: result.message
-    });
-  } catch (error) {
-    return handleRouteError(error, 'DOWNGRADE_CANCELED_ROUTE');
-  }
+  return withRedisRouteHandlerJson(
+    request,
+    'DOWNGRADE_CANCELED_ROUTE',
+    async (req) => {
+      const downgradeCanceledRouteService = container.resolve(DowngradeCanceledRouteService);
+      const result = await downgradeCanceledRouteService.postInvokeV1(req);
+      
+      return {
+        success: true,
+        message: result.message
+      };
+    }
+  );
 }

@@ -3,7 +3,7 @@ import { LoggingService } from "@/services/LoggingService";
 import { PlanConfigurationService } from "@/services/PlanConfigurationService";
 import { SubscriptionDataAccess } from "@/services/data-access/SubscriptionDataAccess";
 import { RedisRateLimitService } from "./RedisRateLimitService";
-import { RedisConnectionSingleton } from "@/services/RedisConnectionSingleton";
+import { getRedisManager } from "@/lib/redis";
 
 export interface UsageRecord {
   apiKey: string;
@@ -50,7 +50,6 @@ export class UsageTrackingService {
     @inject("LoggingService") private loggingService: LoggingService,
     @inject("PlanConfigurationService") private planConfigService: PlanConfigurationService,
     @inject("SubscriptionDataAccess") private subscriptionDataAccess: SubscriptionDataAccess,
-    @inject("RedisConnectionSingleton") private redisSingleton: RedisConnectionSingleton,
     @inject("RedisRateLimitService") private redisRateLimitService: RedisRateLimitService,
   ) {}
 
@@ -59,7 +58,7 @@ export class UsageTrackingService {
    */
   public async trackUsage(usageRecord: UsageRecord): Promise<void> {
     try {
-      const client = await this.redisSingleton.getClient();
+      const client = await getRedisManager().getClient();
       
       if (!client) {
         throw new Error('Redis client not available');
@@ -139,7 +138,7 @@ export class UsageTrackingService {
    */
   public async getUsageStats(apiKey: string, userId: string, days: number = 30): Promise<UsageStats> {
     try {
-      const client = await this.redisSingleton.getClient();
+      const client = await getRedisManager().getClient();
       
       if (!client) {
         throw new Error('Redis client not available');
@@ -262,7 +261,7 @@ export class UsageTrackingService {
    * Get endpoint keys for a given number of days
    */
   private async getEndpointKeys(apiKey: string, days: number): Promise<string[]> {
-    const client = await this.redisSingleton.getClient();
+    const client = await getRedisManager().getClient();
     if (!client) {
       return [];
     }
@@ -286,7 +285,7 @@ export class UsageTrackingService {
    */
   async healthCheck(): Promise<boolean> {
     try {
-      const client = await this.redisSingleton.getClient();
+      const client = await getRedisManager().getClient();
       await client.ping();
       return true;
     } catch (error) {

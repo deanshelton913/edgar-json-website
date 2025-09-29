@@ -38,7 +38,6 @@ import { RedisRateLimitService } from "@/services/rate-limiting/RedisRateLimitSe
 import { UsageTrackingService } from "@/services/rate-limiting/UsageTrackingService";
 import { ApiKeyCacheService } from "@/services/ApiKeyCacheService";
 import { RedisConnectionManager } from "@/services/RedisConnectionManager";
-import { RedisConnectionSingleton } from "@/services/RedisConnectionSingleton";
 
 // Import stripe services
 import { StripeService } from "@/services/stripe/StripeService";
@@ -103,7 +102,6 @@ container.register("RedisRateLimitService", { useClass: RedisRateLimitService })
 container.register("UsageTrackingService", { useClass: UsageTrackingService });
 container.register("ApiKeyCacheService", { useClass: ApiKeyCacheService });
 container.register("RedisConnectionManager", { useClass: RedisConnectionManager });
-container.register("RedisConnectionSingleton", { useClass: RedisConnectionSingleton });
 
 // Register stripe services
 container.register("StripeService", { useClass: StripeService });

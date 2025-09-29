@@ -3,7 +3,7 @@ import type { LoggingService } from "@/services/LoggingService";
 import { ApiKeyDataAccess } from "@/services/data-access/ApiKeyDataAccess";
 import { SubscriptionDataAccess } from "@/services/data-access/SubscriptionDataAccess";
 import { PlanConfigurationService } from "@/services/PlanConfigurationService";
-import { RedisConnectionSingleton } from "@/services/RedisConnectionSingleton";
+import { getRedisManager } from "@/lib/redis";
 
 export interface ApiKeyInfo {
   id: number;
@@ -27,12 +27,11 @@ export class ApiKeyCacheService {
     @inject("ApiKeyDataAccess") private apiKeyDataAccess: ApiKeyDataAccess,
     @inject("SubscriptionDataAccess") private subscriptionDataAccess: SubscriptionDataAccess,
     @inject("PlanConfigurationService") private planConfigService: PlanConfigurationService,
-    @inject("RedisConnectionSingleton") private redisSingleton: RedisConnectionSingleton,
   ) {}
 
   public async isHealthy(): Promise<boolean> {
     try {
-      const client = await this.redisSingleton.getClient();
+      const client = await getRedisManager().getClient();
       await client.ping();
       return true;
     } catch (error) {
@@ -46,7 +45,7 @@ export class ApiKeyCacheService {
    */
   public async getApiKeyInfo(apiKey: string): Promise<ApiKeyInfo | null> {
     try {
-      const client = await this.redisSingleton.getClient();
+      const client = await getRedisManager().getClient();
 
       const cacheKey = `api_key:${apiKey}`;
       
@@ -117,7 +116,7 @@ export class ApiKeyCacheService {
    */
   public async invalidateApiKey(apiKey: string): Promise<void> {
     try {
-      const client = await this.redisSingleton.getClient();
+      const client = await getRedisManager().getClient();
       const cacheKey = `api_key:${apiKey}`;
       await client.del(cacheKey);
       this.loggingService.debug(`[API_KEY_CACHE] Invalidated cache for API key: ${apiKey}`);
@@ -131,7 +130,7 @@ export class ApiKeyCacheService {
    */
   public async updateApiKeyInCache(apiKeyInfo: ApiKeyInfo): Promise<void> {
     try {
-      const client = await this.redisSingleton.getClient();
+      const client = await getRedisManager().getClient();
       const cacheKey = `api_key:${apiKeyInfo.apiKey}`;
       await client.setEx(cacheKey, this.CACHE_TTL, JSON.stringify(apiKeyInfo));
       this.loggingService.debug(`[API_KEY_CACHE] Updated cache for API key: ${apiKeyInfo.apiKey}`);

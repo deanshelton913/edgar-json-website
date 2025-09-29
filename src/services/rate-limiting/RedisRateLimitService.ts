@@ -1,6 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import type { LoggingService } from "@/services/LoggingService";
-import { RedisConnectionSingleton } from "@/services/RedisConnectionSingleton";
+import { getRedisManager } from "@/lib/redis";
 import { ApiKeyCacheService } from "@/services/ApiKeyCacheService";
 
 export interface RateLimitInfo {
@@ -26,7 +26,6 @@ export class RedisRateLimitService {
 
   constructor(
     @inject("LoggingService") private loggingService: LoggingService,
-    @inject("RedisConnectionSingleton") private redisSingleton: RedisConnectionSingleton,
     @inject("ApiKeyCacheService") private apiKeyCacheService: ApiKeyCacheService,
   ) {}
 
@@ -35,7 +34,7 @@ export class RedisRateLimitService {
    */
   async checkRateLimit(apiKey: string): Promise<RateLimitInfo> {
     try {
-      const client = await this.redisSingleton.getClient();
+      const client = await getRedisManager().getClient();
       
       if (!client) {
         throw new Error('Redis client not available');
@@ -116,7 +115,7 @@ export class RedisRateLimitService {
    */
   async incrementRateLimit(apiKey: string): Promise<void> {
     try {
-      const client = await this.redisSingleton.getClient();
+      const client = await getRedisManager().getClient();
       
       if (!client) {
         throw new Error('Redis client not available');
@@ -155,7 +154,7 @@ export class RedisRateLimitService {
    */
   async resetRateLimit(apiKey: string): Promise<void> {
     try {
-      const client = await this.redisSingleton.getClient();
+      const client = await getRedisManager().getClient();
       
       if (!client) {
         throw new Error('Redis client not available');
@@ -204,7 +203,7 @@ export class RedisRateLimitService {
    */
   async healthCheck(): Promise<boolean> {
     try {
-      const client = await this.redisSingleton.getClient();
+      const client = await getRedisManager().getClient();
       await client.ping();
       return true;
     } catch (error) {
