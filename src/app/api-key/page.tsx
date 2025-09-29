@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { PlayIcon } from "@heroicons/react/24/outline";
+import { Highlight } from "prism-react-renderer";
+import { themes } from "prism-react-renderer";
 
 interface ApiKeyData {
   apiKey: string;
@@ -38,6 +41,22 @@ export default function ApiKey() {
   const [showComplianceModal, setShowComplianceModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Test API state
+  const [testCode, setTestCode] = useState('');
+  const [testResponse, setTestResponse] = useState<string | null>(null);
+  const [isTesting, setIsTesting] = useState(false);
+  const [testError, setTestError] = useState<string | null>(null);
+
+  // Get base URL dynamically
+  const getApiBaseUrl = () => {
+    if (typeof window !== 'undefined') {
+      return window.location.origin;
+    }
+    return process.env.NEXT_PUBLIC_VERCEL_URL 
+      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+      : 'http://localhost:3000';
+  };
 
   const fetchApiKey = useCallback(async (userId: string) => {
     try {
@@ -155,6 +174,23 @@ export default function ApiKey() {
     getUserInfo();
   }, [checkCompliance]);
 
+  // Initialize test code when API key data is available
+  useEffect(() => {
+    if (apiKeyData?.apiKey) {
+      const baseUrl = getApiBaseUrl();
+      const apiKey = apiKeyData.apiKey;
+      const newTestCode = `fetch('${baseUrl}/api/v1/filings/1578217/000157821725000004/0001578217-25-000004.json', {
+  headers: {
+    'Authorization': 'Bearer ${apiKey}'
+  }
+})
+.then(response => response.json())
+.then(data => console.log(data))
+.catch(error => console.error('Error:', error));`;
+      setTestCode(newTestCode);
+    }
+  }, [apiKeyData]);
+
   const createApiKey = async () => {
     if (!userId) return;
 
@@ -253,6 +289,47 @@ export default function ApiKey() {
     const end = apiKey.substring(apiKey.length - 4);
     const middle = '*'.repeat(Math.max(apiKey.length - 8, 4));
     return `${start}${middle}${end}`;
+  };
+
+  // Test API functionality
+  const handleTestApi = async () => {
+    if (!apiKeyData?.apiKey) return;
+    
+    setIsTesting(true);
+    setTestError(null);
+    setTestResponse(null);
+
+    try {
+      // Extract URL from the JavaScript code
+      const urlMatch = testCode.match(/fetch\('([^']+)'/);
+      if (!urlMatch) {
+        setTestError('Invalid JavaScript code format');
+        return;
+      }
+      
+      const apiUrl = urlMatch[1];
+      const response = await fetch(apiUrl, {
+        headers: {
+          'Authorization': `Bearer ${apiKeyData.apiKey}`,
+        },
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        setTestResponse(JSON.stringify(data, null, 2));
+        // Refresh API key data to update usage count
+        if (userId) {
+          await fetchApiKey(userId);
+        }
+      } else {
+        setTestError(`Error ${response.status}: ${data.error || data.message || 'Unknown error'}`);
+      }
+    } catch (error) {
+      setTestError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsTesting(false);
+    }
   };
 
 
@@ -498,6 +575,69 @@ export default function ApiKey() {
                 <strong>💡 Tip:</strong> Rate limits reset automatically. If you exceed the limit, 
                 you&apos;ll receive a 429 status code and need to wait for the window to reset.
               </p>
+            </div>
+          </div>
+
+          {/* Test API Section */}
+          <div className="mt-8 p-6 bg-blue-50 rounded-lg shadow-md">
+            <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+              🧪 Test the API
+            </h3>
+            
+            <div className="space-y-4">
+              <p className="text-gray-700">
+                Test the API with your own API key. Modify the JavaScript code below and click &quot;Run Code&quot; to see the JSON response.
+              </p>
+              
+              <div className="space-y-2">
+                <textarea
+                  value={testCode}
+                  onChange={(e) => setTestCode(e.target.value)}
+                  rows={8}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                  placeholder="Enter your JavaScript fetch code here..."
+                />
+                <button
+                  onClick={handleTestApi}
+                  disabled={isTesting || !testCode}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  <PlayIcon className="h-4 w-4" />
+                  {isTesting ? 'Running...' : 'Run Code'}
+                </button>
+              </div>
+
+              {testError && (
+                <div className="p-4 bg-red-100 border border-red-300 rounded-md">
+                  <p className="text-red-800 font-medium">Error:</p>
+                  <p className="text-red-700 text-sm">{testError}</p>
+                </div>
+              )}
+
+              {testResponse && (
+                <div className="border border-gray-300 rounded-md bg-gray-100 overflow-x-auto">
+                  <div className="p-2 bg-gray-200 border-b border-gray-300">
+                    <p className="text-sm font-medium text-gray-700">Response:</p>
+                  </div>
+                  <Highlight
+                    code={testResponse}
+                    language="json"
+                    theme={themes.github}
+                  >
+                    {({ className, style, tokens, getLineProps, getTokenProps }) => (
+                      <pre className={`${className} p-4 text-sm`} style={style}>
+                        {tokens.map((line, i) => (
+                          <div key={i} {...getLineProps({ line })}>
+                            {line.map((token, key) => (
+                              <span key={key} {...getTokenProps({ token })} />
+                            ))}
+                          </div>
+                        ))}
+                      </pre>
+                    )}
+                  </Highlight>
+                </div>
+              )}
             </div>
           </div>
 
