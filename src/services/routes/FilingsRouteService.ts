@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { SecParserService } from "../parsing/SecParserService";
 import { LoggingService } from "../LoggingService";
 import { UsageTrackingService } from "../rate-limiting/UsageTrackingService";
+import { ApiKeyAuthorizerService } from "../authorizers/ApiKeyAuthorizerService";
 
 export interface FilingsRequest {
   filingPath?: string;
@@ -30,6 +31,7 @@ export class FilingsRouteService {
     @inject("LoggingService") private loggingService: LoggingService,
     @inject("SecParserService") private secParserService: SecParserService,
     @inject("UsageTrackingService") private usageTrackingService: UsageTrackingService,
+    @inject("ApiKeyAuthorizerService") private apiKeyAuthorizer: ApiKeyAuthorizerService,
   ) {}
 
   /**
@@ -63,7 +65,7 @@ export class FilingsRouteService {
       }
 
       // Authorize request (API key required for this endpoint)
-      const authResult = this.getAuthInfo(request);
+      const authResult = await this.apiKeyAuthorizer.authorizeRequest(request);
       if (!authResult.success) {
         return this.createErrorResponse(
           'Authorization failed',
@@ -151,7 +153,7 @@ export class FilingsRouteService {
       }
 
       // Authorize request (API key required for this endpoint)
-      const authResult = this.getAuthInfo(request);
+      const authResult = await this.apiKeyAuthorizer.authorizeRequest(request);
       if (!authResult.success) {
         return this.createErrorResponse(
           'Authorization failed',
@@ -255,32 +257,6 @@ export class FilingsRouteService {
     return { method: request.method as 'GET' | 'POST' };
   }
 
-  /**
-   * Get user info from middleware headers
-   */
-  private getAuthInfo(request: NextRequest): {
-    success: boolean;
-    apiKey?: string;
-    userId?: string;
-    message?: string;
-  } {
-    // Get user info from middleware headers
-    const userId = request.headers.get('x-user-id');
-    const apiKey = request.headers.get('x-api-key');
-    
-    if (!userId || !apiKey) {
-      return {
-        success: false,
-        message: 'API key required',
-      };
-    }
-
-    return {
-      success: true,
-      apiKey: apiKey,
-      userId: userId,
-    };
-  }
 
   /**
    * Handle test mode requests

@@ -21,9 +21,9 @@ export async function GET(request: NextRequest) {
         throw new Error(`Rate limit exceeded: ${rateLimitResult.response?.statusText}`);
       }
 
-      // Get user info from middleware headers
-      const userId = req.headers.get("x-user-id");
-      const apiKey = req.headers.get("x-api-key");
+      // Get user info from rate limit result
+      const userId = rateLimitResult.userId;
+      const apiKey = rateLimitResult.apiKey;
 
       if (!userId || !apiKey) {
         throw new Error("User authentication required");

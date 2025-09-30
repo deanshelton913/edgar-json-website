@@ -57,10 +57,10 @@ export default function Home() {
 				<button
 					onClick={handleCTAClick}
 					disabled={isLoading}
-					className="mt-6 px-8 py-4  from-blue-600 text-white rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 text-xl font-bold relative overflow-hidden group animate-bounce"
+					className="mt-6 px-8 py-4 bg-blue-600 text-white rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 text-xl font-bold relative overflow-hidden group"
 				>
 					<span className="relative z-10 flex items-center gap-3">
-						<span className="text-2xl">🤖</span>
+						<span className="text-2xl">🔑</span>
 						{isLoading ? 'Loading...' : 'Get Your FREE API Key!'}
 					</span>
 					<div className="absolute inset-0 bg-gradient-to-r from-green-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -557,9 +557,9 @@ FILER:
 				<button
 					onClick={handleCTAClick}
 					disabled={isLoading}
-					className="mt-6 px-8 py-4 bg-gradient-to-r from-blue-600 to-green-600 text-white rounded-lg shadow-lg hover:from-blue-700 hover:to-green-700 transition inline-block disabled:opacity-50 text-lg font-semibold animate-bounce"
+					className="mt-6 px-8 py-4 bg-blue-600 text-white rounded-lg shadow-lg hover:bg-blue-700 transition inline-block disabled:opacity-50 text-lg font-semibold"
 				>
-					{isLoading ? 'Loading...' : '🤖 Get FREE API Key & Start Building'}
+					{isLoading ? 'Loading...' : '🔑 Get FREE API Key & Start Building'}
 				</button>
 				<p className="text-xs text-gray-500 mt-3">
 					No credit card required • Instant access • Full documentation included

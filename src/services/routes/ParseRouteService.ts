@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { SecParserService } from "../parsing/SecParserService";
 import { LoggingService } from "../LoggingService";
 import { UsageTrackingService } from "../rate-limiting/UsageTrackingService";
+import { ApiKeyAuthorizerService } from "../authorizers/ApiKeyAuthorizerService";
 
 export interface ParseRequest {
   filingPath: string;
@@ -29,6 +30,7 @@ export class ParseRouteService {
     @inject("LoggingService") private loggingService: LoggingService,
     @inject("SecParserService") private secParserService: SecParserService,
     @inject("UsageTrackingService") private usageTrackingService: UsageTrackingService,
+    @inject("ApiKeyAuthorizerService") private apiKeyAuthorizer: ApiKeyAuthorizerService,
   ) {}
 
   /**
@@ -62,7 +64,7 @@ export class ParseRouteService {
       }
 
       // Authorize request (if API key is provided)
-      const authResult = this.getAuthInfo(request);
+      const authResult = await this.apiKeyAuthorizer.authorizeRequest(request);
       if (!authResult.success) {
         return this.createErrorResponse(
           'Authorization failed',
@@ -154,7 +156,7 @@ export class ParseRouteService {
       }
 
       // Authorize request (if API key is provided)
-      const authResult = this.getAuthInfo(request);
+      const authResult = await this.apiKeyAuthorizer.authorizeRequest(request);
       if (!authResult.success) {
         return this.createErrorResponse(
           'Authorization failed',
@@ -235,31 +237,6 @@ export class ParseRouteService {
       filingPath: body.filingPath || '',
       testMode: body.testMode || false,
     };
-  }
-
-  /**
-   * Get user info from middleware headers
-   */
-  private getAuthInfo(request: NextRequest): {
-    success: boolean;
-    apiKey?: string;
-    userId?: string;
-    message?: string;
-  } {
-    // Get user info from middleware headers
-    const userId = request.headers.get('x-user-id');
-    const apiKey = request.headers.get('x-api-key');
-    
-    if (userId && apiKey) {
-      return {
-        success: true,
-        apiKey: apiKey,
-        userId: userId,
-      };
-    }
-
-    // No auth provided - allow request but don't track usage
-    return { success: true };
   }
 
   /**
