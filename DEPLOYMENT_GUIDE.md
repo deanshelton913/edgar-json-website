@@ -51,9 +51,6 @@ Add these environment variables to your Vercel project:
 
 After deployment, test these endpoints:
 
-1. **Configuration Check**: `https://your-app.vercel.app/api/config-check`
-   - Verifies all environment variables are set correctly
-
 2. **Database Test**: `https://your-app.vercel.app/api/test-db`
    - Tests database connectivity
 

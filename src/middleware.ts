@@ -20,7 +20,6 @@ const API_KEY_AUTH_ROUTES = [
 // Routes that don't require authentication
 const PUBLIC_ROUTES = [
   '/api/auth',
-  '/api/config-check',
   '/api/tos/content',
   '/api/billing/webhook',
 ];
