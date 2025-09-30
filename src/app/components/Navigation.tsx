@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import GoogleLoginButton from './GoogleLoginButton';
 import { useSidebar } from '../contexts/SidebarContext';
 
@@ -17,6 +18,15 @@ export default function Navigation() {
   const [isLoading, setIsLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isSidebarCollapsed, setIsSidebarCollapsed } = useSidebar();
+  const pathname = usePathname();
+
+  // Helper function to determine if a link is active
+  const isActive = (href: string) => {
+    if (href === '/') {
+      return pathname === '/';
+    }
+    return pathname.startsWith(href);
+  };
 
   useEffect(() => {
     checkAuthStatus();
@@ -119,25 +129,34 @@ export default function Navigation() {
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200 px-4 py-4 bg-white relative z-50">
             <div className="flex flex-col space-y-4">
+              {/* Home Link */}
+              <Link 
+                href="/" 
+                className={`px-2 py-1 transition-all duration-200 ${isActive('/') ? 'text-blue-700 bg-blue-50 font-medium' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                Home
+              </Link>
+              
               {isAuthenticated && (
                 <>
                   <Link 
                     href="/api-key" 
-                    className="text-gray-700 hover:text-gray-900 px-2 py-1"
+                    className={`px-2 py-1 transition-all duration-200 ${isActive('/api-key') ? 'text-blue-700 bg-blue-50 font-medium' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Api Key
                   </Link>
                   <Link 
                     href="/usage-stats" 
-                    className="text-gray-700 hover:text-gray-900 px-2 py-1"
+                    className={`px-2 py-1 transition-all duration-200 ${isActive('/usage-stats') ? 'text-blue-700 bg-blue-50 font-medium' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Usage Stats
                   </Link>
                   <Link 
                     href="/billing" 
-                    className="text-gray-700 hover:text-gray-900 px-2 py-1"
+                    className={`px-2 py-1 transition-all duration-200 ${isActive('/billing') ? 'text-blue-700 bg-blue-50 font-medium' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Billing
@@ -146,14 +165,14 @@ export default function Navigation() {
               )}
               <Link 
                 href="/support" 
-                className="text-gray-700 hover:text-gray-900 px-2 py-1"
+                className={`px-2 py-1 transition-all duration-200 ${isActive('/support') ? 'text-blue-700 bg-blue-50 font-medium' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Support
               </Link>
               <Link 
                 href="/terms" 
-                className="text-gray-700 hover:text-gray-900 px-2 py-1"
+                className={`px-2 py-1 transition-all duration-200 ${isActive('/terms') ? 'text-blue-700 bg-blue-50 font-medium' : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Terms
@@ -237,63 +256,99 @@ export default function Navigation() {
 
           {/* Navigation Links */}
           <nav className="flex-1 px-2 space-y-1">
+            {/* Home Link */}
+            <Link
+              href="/"
+              className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                isActive('/')
+                  ? 'bg-blue-50 text-blue-700 border border-blue-400'
+                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:shadow-sm'
+              }`}
+              title={isSidebarCollapsed ? "Home" : ""}
+            >
+              <svg className={`h-5 w-5 transition-colors duration-200 ${isActive('/') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-600'} ${isSidebarCollapsed ? '' : 'mr-3'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+              {!isSidebarCollapsed && <span className="transition-colors duration-200">Home</span>}
+            </Link>
+
             {isAuthenticated && (
               <>
                 <Link
                   href="/api-key"
-                  className="group flex items-center px-2 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                    isActive('/api-key')
+                      ? 'bg-blue-50 text-blue-700 border border-blue-400'
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:shadow-sm'
+                  }`}
                   title={isSidebarCollapsed ? "Api Key" : ""}
                 >
-                  <svg className={`h-5 w-5 text-gray-400 group-hover:text-gray-500 ${isSidebarCollapsed ? '' : 'mr-3'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className={`h-5 w-5 transition-colors duration-200 ${isActive('/api-key') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-600'} ${isSidebarCollapsed ? '' : 'mr-3'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                   </svg>
-                  {!isSidebarCollapsed && <span>Api Key</span>}
+                  {!isSidebarCollapsed && <span className="transition-colors duration-200">Api Key</span>}
                 </Link>
 
                 <Link
                   href="/usage-stats"
-                  className="group flex items-center px-2 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                    isActive('/usage-stats')
+                      ? 'bg-blue-50 text-blue-700 border border-blue-400'
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:shadow-sm'
+                  }`}
                   title={isSidebarCollapsed ? "Usage Stats" : ""}
                 >
-                  <svg className={`h-5 w-5 text-gray-400 group-hover:text-gray-500 ${isSidebarCollapsed ? '' : 'mr-3'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className={`h-5 w-5 transition-colors duration-200 ${isActive('/usage-stats') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-600'} ${isSidebarCollapsed ? '' : 'mr-3'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
-                  {!isSidebarCollapsed && <span>Usage Stats</span>}
+                  {!isSidebarCollapsed && <span className="transition-colors duration-200">Usage Stats</span>}
                 </Link>
 
                 <Link
                   href="/billing"
-                  className="group flex items-center px-2 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                    isActive('/billing')
+                      ? 'bg-blue-50 text-blue-700 border border-blue-400'
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:shadow-sm'
+                  }`}
                   title={isSidebarCollapsed ? "Billing" : ""}
                 >
-                  <svg className={`h-5 w-5 text-gray-400 group-hover:text-gray-500 ${isSidebarCollapsed ? '' : 'mr-3'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className={`h-5 w-5 transition-colors duration-200 ${isActive('/billing') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-600'} ${isSidebarCollapsed ? '' : 'mr-3'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                   </svg>
-                  {!isSidebarCollapsed && <span>Billing</span>}
+                  {!isSidebarCollapsed && <span className="transition-colors duration-200">Billing</span>}
                 </Link>
               </>
             )}
 
             <Link
               href="/support"
-              className="group flex items-center px-2 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors"
+              className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                isActive('/support')
+                  ? 'bg-blue-50 text-blue-700 border border-blue-400'
+                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:shadow-sm'
+              }`}
               title={isSidebarCollapsed ? "Support" : ""}
             >
-              <svg className={`h-5 w-5 text-gray-400 group-hover:text-gray-500 ${isSidebarCollapsed ? '' : 'mr-3'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5z" />
+              <svg className={`h-5 w-5 transition-colors duration-200 ${isActive('/support') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-600'} ${isSidebarCollapsed ? '' : 'mr-3'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              {!isSidebarCollapsed && <span>Support</span>}
+              {!isSidebarCollapsed && <span className="transition-colors duration-200">Support</span>}
             </Link>
 
             <Link
               href="/terms"
-              className="group flex items-center px-2 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors"
+              className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                isActive('/terms')
+                  ? 'bg-blue-50 text-blue-700 border border-blue-400'
+                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:shadow-sm'
+              }`}
               title={isSidebarCollapsed ? "Terms" : ""}
             >
-              <svg className={`h-5 w-5 text-gray-400 group-hover:text-gray-500 ${isSidebarCollapsed ? '' : 'mr-3'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={`h-5 w-5 transition-colors duration-200 ${isActive('/terms') ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-600'} ${isSidebarCollapsed ? '' : 'mr-3'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              {!isSidebarCollapsed && <span>Terms</span>}
+              {!isSidebarCollapsed && <span className="transition-colors duration-200">Terms</span>}
             </Link>
           </nav>
         </div>
