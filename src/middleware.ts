@@ -83,6 +83,7 @@ async function handleCookieAuth(request: NextRequest): Promise<NextResponse> {
   }
 }
 
+
 async function handleApiKeyAuth(request: NextRequest): Promise<NextResponse> {
   try {
     // Use Upstash services that work in Edge Runtime

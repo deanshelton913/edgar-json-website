@@ -22,7 +22,6 @@ export interface RateLimitConfig {
 
 @injectable()
 export class RedisRateLimitService {
-  private isConnected = false;
 
   constructor(
     @inject("LoggingService") private loggingService: LoggingService,

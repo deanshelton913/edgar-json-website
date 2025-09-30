@@ -19,7 +19,6 @@ export interface ApiKeyInfo {
 
 @injectable()
 export class ApiKeyCacheService {
-  private isConnected: boolean = false;
   private readonly CACHE_TTL = 300; // 5 minutes cache TTL
 
   constructor(
