@@ -32,6 +32,28 @@ export async function POST(request: NextRequest) {
     try {
       const stripeSubscription = await stripeService.getSubscription(dbSubscription.stripeSubscriptionId);
       
+      if (!stripeSubscription) {
+        // Subscription not found in Stripe, mark as canceled in DB
+        await subscriptionDataAccess.updateSubscriptionStatus(
+          dbSubscription.stripeSubscriptionId,
+          'canceled',
+          undefined,
+          undefined,
+          true,
+          new Date()
+        );
+
+        loggingService.debug(`[FIX_SUBSCRIPTION] Subscription not found in Stripe, marked as canceled in DB`);
+
+        return NextResponse.json({
+          success: true,
+          message: 'Subscription not found in Stripe, marked as canceled',
+          status: 'canceled',
+          stripeStatus: 'not_found',
+          dbStatus: 'canceled'
+        });
+      }
+      
       loggingService.debug(`[FIX_SUBSCRIPTION] Stripe subscription status: ${stripeSubscription.status}`);
 
       // If Stripe shows cancelled but DB doesn't, update DB
@@ -87,28 +109,7 @@ export async function POST(request: NextRequest) {
       });
 
     } catch (stripeError) {
-      // If subscription not found in Stripe, mark as canceled in DB
-      if (stripeError instanceof Error && stripeError.message.includes('No such subscription')) {
-        await subscriptionDataAccess.updateSubscriptionStatus(
-          dbSubscription.stripeSubscriptionId,
-          'canceled',
-          undefined,
-          undefined,
-          true,
-          new Date()
-        );
-
-        loggingService.debug(`[FIX_SUBSCRIPTION] Subscription not found in Stripe, marked as canceled in DB`);
-
-        return NextResponse.json({
-          success: true,
-          message: 'Subscription not found in Stripe, marked as canceled',
-          status: 'canceled',
-          stripeStatus: 'not_found',
-          dbStatus: 'canceled'
-        });
-      }
-
+      loggingService.error(`[FIX_SUBSCRIPTION] Error checking Stripe subscription: ${stripeError}`);
       throw stripeError;
     }
 
