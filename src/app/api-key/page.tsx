@@ -423,7 +423,7 @@ export default function ApiKey() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto bg-white shadow-xl rounded-lg mt-4 md:mt-12">
+    <div className="p-4 md:p-8 max-w-4xl mx-auto bg-white shadow-xl rounded-lg">
       {/* Header */}
       <div className="text-center mb-6 md:mb-8">
         <div className="text-center mb-4">
@@ -517,22 +517,11 @@ export default function ApiKey() {
                 <span>Upgrade API Key</span>
               </a>
               
-              {/* Secondary Actions Row */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <a
-                  href="/support"
-                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-800 text-sm font-medium rounded-md hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
-                >
-                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                  </svg>
-                  <span>Test API Key</span>
-                </a>
-                
-                {/* Delete Button */}
+              {/* Delete Button */}
+              <div className="flex justify-center">
                 <button
                   onClick={() => setShowDeleteModal(true)}
-                  className="flex-1 px-4 py-2 bg-red-100 text-red-800 text-sm font-medium rounded-md hover:bg-red-200 transition-colors flex items-center justify-center space-x-2"
+                  className="px-4 py-2 bg-red-100 text-red-800 text-sm font-medium rounded-md hover:bg-red-200 transition-colors flex items-center justify-center space-x-2"
                 >
                   <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

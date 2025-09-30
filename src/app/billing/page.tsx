@@ -277,7 +277,7 @@ export default function Billing() {
 
   // Helper function to format price
   const formatPrice = (amount: number) => {
-    return amount === 0 ? 'Free' : `$${amount.toFixed(2)}`;
+    return amount === 0 ? '$0' : `$${amount.toFixed(2)}`;
   };
 
   const getCurrentPlan = () => {
