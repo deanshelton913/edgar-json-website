@@ -35,9 +35,11 @@ export class ApiKeyService {
       const subscription = await this.subscriptionDataAccess.getSubscriptionByUserId(userId);
       
       // Determine tier and limits based on subscription
-      const planLimits = this.planConfigService.getUserPlanLimits(
+      const planLimits = this.planConfigService.getUserPlanLimitsWithSubscription(
         subscription?.status || null,
-        subscription?.planId || null
+        subscription?.planId || null,
+        subscription?.cancelAtPeriodEnd || null,
+        subscription?.currentPeriodEnd || null
       );
 
       return {
@@ -68,9 +70,11 @@ export class ApiKeyService {
       const subscription = await this.subscriptionDataAccess.getSubscriptionByUserId(apiKey.userId);
       
       // Determine tier and limits based on subscription
-      const planLimits = this.planConfigService.getUserPlanLimits(
+      const planLimits = this.planConfigService.getUserPlanLimitsWithSubscription(
         subscription?.status || null,
-        subscription?.planId || null
+        subscription?.planId || null,
+        subscription?.cancelAtPeriodEnd || null,
+        subscription?.currentPeriodEnd || null
       );
 
       return {
@@ -107,9 +111,11 @@ export class ApiKeyService {
       const subscription = await this.subscriptionDataAccess.getSubscriptionByUserId(userId);
       
       // Determine tier and limits based on subscription
-      const planLimits = this.planConfigService.getUserPlanLimits(
+      const planLimits = this.planConfigService.getUserPlanLimitsWithSubscription(
         subscription?.status || null,
-        subscription?.planId || null
+        subscription?.planId || null,
+        subscription?.cancelAtPeriodEnd || null,
+        subscription?.currentPeriodEnd || null
       );
 
       return {

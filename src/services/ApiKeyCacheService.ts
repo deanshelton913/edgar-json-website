@@ -150,9 +150,11 @@ export class ApiKeyCacheService {
 
     // Get user's subscription to determine rate limits
     const subscription = await this.subscriptionDataAccess.getSubscriptionByUserId(apiKeyInfo.userId);
-    const planLimits = this.planConfigService.getUserPlanLimits(
+    const planLimits = this.planConfigService.getUserPlanLimitsWithSubscription(
       subscription?.status || null,
-      subscription?.planId || null
+      subscription?.planId || null,
+      subscription?.cancelAtPeriodEnd || null,
+      subscription?.currentPeriodEnd || null
     );
 
     return {

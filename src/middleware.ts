@@ -14,7 +14,7 @@ const COOKIE_AUTH_ROUTES = [
 const API_KEY_AUTH_ROUTES = [
   '/api/v1/filings',
   '/api/v1/usage',
-  '/api/parse',
+  '/api/v1/parse',
 ];
 
 // Routes that don't require authentication
@@ -63,13 +63,13 @@ async function handleCookieAuth(request: NextRequest): Promise<NextResponse> {
     
     try {
       const { payload } = await jwtVerify(sessionCookie.value, secret);
-      const sessionData = payload as any;
+      const sessionData = payload as { userId?: string; email?: string };
       
       const response = NextResponse.next();
       response.headers.set('x-user-id', sessionData.userId || '');
       response.headers.set('x-user-email', sessionData.email || '');
       return response;
-    } catch (jwtError) {
+    } catch {
       return NextResponse.json(
         { success: false, error: 'Invalid session token' },
         { status: 401 }

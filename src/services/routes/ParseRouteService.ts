@@ -98,7 +98,7 @@ export class ParseRouteService {
 
       // Track usage (if API key is provided)
       if (apiKey && userId) {
-        await this.trackUsage(apiKey, userId, response, startTime, '/api/parse');
+        await this.trackUsage(apiKey, userId, response, startTime, '/api/v1/parse');
       }
 
       return response;
@@ -116,7 +116,7 @@ export class ParseRouteService {
 
       // Track usage even for failed requests
       if (apiKey && userId) {
-        await this.trackUsage(apiKey, userId, errorResponse, startTime, '/api/parse');
+        await this.trackUsage(apiKey, userId, errorResponse, startTime, '/api/v1/parse');
       }
 
       return errorResponse;
@@ -190,7 +190,7 @@ export class ParseRouteService {
 
       // Track usage (if API key is provided)
       if (apiKey && userId) {
-        await this.trackUsage(apiKey, userId, response, startTime, '/api/parse');
+        await this.trackUsage(apiKey, userId, response, startTime, '/api/v1/parse');
       }
 
       return response;
@@ -208,7 +208,7 @@ export class ParseRouteService {
 
       // Track usage even for failed requests
       if (apiKey && userId) {
-        await this.trackUsage(apiKey, userId, errorResponse, startTime, '/api/parse');
+        await this.trackUsage(apiKey, userId, errorResponse, startTime, '/api/v1/parse');
       }
 
       return errorResponse;

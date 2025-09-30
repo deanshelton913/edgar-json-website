@@ -48,6 +48,34 @@ export class PlanConfigurationService {
   }
 
   /**
+   * Get plan limits for a user based on their subscription details
+   * This method checks if a canceled subscription period has ended
+   */
+  getUserPlanLimitsWithSubscription(
+    subscriptionStatus: string | null, 
+    planId: string | null,
+    cancelAtPeriodEnd: boolean | null,
+    currentPeriodEnd: Date | null
+  ): PlanLimits {
+    // If user has an active subscription, check if it's still valid
+    if (subscriptionStatus === 'active' && planId) {
+      // If subscription is canceled at period end, check if period has ended
+      if (cancelAtPeriodEnd && currentPeriodEnd) {
+        const now = new Date();
+        if (now >= currentPeriodEnd) {
+          // Period has ended, fall back to free tier
+          return this.planConfigurations['free'];
+        }
+      }
+      // Still within period, use their plan
+      return this.getPlanLimits(planId);
+    }
+    
+    // Default to free tier for inactive/no subscription
+    return this.planConfigurations['free'];
+  }
+
+  /**
    * Check if a plan ID is valid
    */
   isValidPlan(planId: string): boolean {

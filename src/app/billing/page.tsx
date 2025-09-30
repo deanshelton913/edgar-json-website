@@ -282,15 +282,47 @@ export default function Billing() {
 
   const getCurrentPlan = () => {
     if (!currentSubscription || plans.length === 0) return plans[0] || null; // Default to free
+    
+    // Check if subscription period has ended
+    if (currentSubscription.cancelAtPeriodEnd && currentSubscription.currentPeriodEnd) {
+      const now = new Date();
+      const periodEnd = new Date(currentSubscription.currentPeriodEnd);
+      if (now >= periodEnd) {
+        // Period has ended, return free plan
+        return plans.find(plan => plan.id === 'free') || plans[0];
+      }
+    }
+    
+    // Check if subscription is canceled (not just canceled at period end)
+    if (currentSubscription.status === 'canceled') {
+      return plans.find(plan => plan.id === 'free') || plans[0];
+    }
+    
+    // Still active within period, return current plan
     return plans.find(plan => plan.id === currentSubscription.planId) || plans[0];
   };
 
   const getFuturePlan = () => {
     if (!currentSubscription || plans.length === 0) return plans[0] || null; // Default to free
     
-    // If subscription is canceled at period end, will downgrade to Free
+    // If subscription is canceled at period end or period has ended, will downgrade to Free
     if (currentSubscription.cancelAtPeriodEnd) {
-      return plans.find(plan => plan.id === 'free') || plans[0]; // Free plan
+      // Check if period has already ended
+      if (currentSubscription.currentPeriodEnd) {
+        const now = new Date();
+        const periodEnd = new Date(currentSubscription.currentPeriodEnd);
+        if (now >= periodEnd) {
+          // Period has ended, already on free plan
+          return plans.find(plan => plan.id === 'free') || plans[0];
+        }
+      }
+      // Period hasn't ended yet, will downgrade to Free
+      return plans.find(plan => plan.id === 'free') || plans[0];
+    }
+    
+    // Check if subscription is canceled
+    if (currentSubscription.status === 'canceled') {
+      return plans.find(plan => plan.id === 'free') || plans[0];
     }
     
     // Otherwise stays on current plan
@@ -381,7 +413,8 @@ export default function Billing() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {plans.map((plan) => {
-              const isCurrentPlan = currentSubscription?.planId === plan.id;
+              const currentPlan = getCurrentPlan();
+              const isCurrentPlan = currentPlan?.id === plan.id;
               const isFree = plan.id === 'free';
               const isDowngrade = currentSubscription?.planId === 'enterprise' && plan.id === 'pro';
               const showPopular = plan.popular && currentSubscription?.planId !== 'enterprise' && !isCurrentPlan;
@@ -461,21 +494,43 @@ export default function Billing() {
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Account & Billing</h2>
           
           {/* Status badge positioned at top right */}
-          {currentSubscription && (
-            <span className={`absolute top-6 right-6 px-3 py-1 rounded-full text-sm font-medium ${
-              currentSubscription.status === 'active' && !currentSubscription.cancelAtPeriodEnd
-                ? 'bg-green-100 text-green-800' 
-                : currentSubscription.cancelAtPeriodEnd
-                ? 'bg-yellow-100 text-yellow-800'
-                : 'bg-red-100 text-red-800'
-            }`}>
-              {currentSubscription.status === 'active' && !currentSubscription.cancelAtPeriodEnd
-                ? 'Active' 
-                : currentSubscription.cancelAtPeriodEnd
-                ? 'Scheduled for Cancellation'
-                : 'Inactive'}
-            </span>
-          )}
+          {currentSubscription && (() => {
+            // Get the actual current plan (which handles period end logic)
+            const currentPlan = getCurrentPlan();
+            
+            // Check if subscription period has ended
+            const now = new Date();
+            const periodEnd = new Date(currentSubscription.currentPeriodEnd);
+            const hasPeriodEnded = currentSubscription.cancelAtPeriodEnd && now >= periodEnd;
+            
+            // Determine status based on actual current plan
+            let statusText = '';
+            let statusClass = '';
+            
+            if (currentPlan?.id === 'free') {
+              // Free plan is always "Active" - it's the default state
+              statusText = 'Active';
+              statusClass = 'bg-green-100 text-green-800';
+            } else if (currentSubscription.status === 'active' && !currentSubscription.cancelAtPeriodEnd) {
+              // Paid plan that's truly active
+              statusText = 'Active';
+              statusClass = 'bg-green-100 text-green-800';
+            } else if (currentSubscription.cancelAtPeriodEnd && !hasPeriodEnded) {
+              // Paid plan scheduled for cancellation but period hasn't ended
+              statusText = 'Scheduled for Cancellation';
+              statusClass = 'bg-yellow-100 text-yellow-800';
+            } else {
+              // No subscription or truly inactive
+              statusText = 'Inactive';
+              statusClass = 'bg-red-100 text-red-800';
+            }
+            
+            return (
+              <span className={`absolute top-6 right-6 px-3 py-1 rounded-full text-sm font-medium ${statusClass}`}>
+                {statusText}
+              </span>
+            );
+          })()}
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Current Subscription */}

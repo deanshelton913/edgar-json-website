@@ -49,24 +49,31 @@ export class UpstashApiKeyAuthorizerService {
       }
 
       // Check if API key exists in cache
-      const cachedApiKeyData = await this.redisService.get(`api_key:${apiKey}`);
-      if (cachedApiKeyData) {
-        const apiKeyData = JSON.parse(cachedApiKeyData);
-        return {
-          success: true,
-          userId: apiKeyData.userId,
-          email: apiKeyData.email,
-          apiKey: apiKey
-        };
+      const cacheKey = `api_key:${apiKey}`;
+      const cachedData = await this.redisService.get(cacheKey);
+      
+      if (cachedData) {
+        try {
+          const apiKeyData = JSON.parse(cachedData);
+          return {
+            success: true,
+            userId: apiKeyData.userId.toString(),
+            email: apiKeyData.email,
+            apiKey: apiKey
+          };
+        } catch (parseError) {
+          console.error('[UPSTASH_API_KEY_AUTHORIZER] Failed to parse cached API key data:', parseError);
+        }
       }
 
       // If not in cache, we need to validate against database
-      // For now, return success (in production, you'd validate against your database)
+      // For Edge Runtime, we can't directly access the database
+      // This is a limitation - we should fail securely
+      console.warn(`[UPSTASH_API_KEY_AUTHORIZER] API key not found in cache: ${apiKey.substring(0, 10)}...`);
       return {
-        success: true,
-        userId: 'temp_user_id',
-        email: 'temp@example.com',
-        apiKey: apiKey
+        success: false,
+        error: 'Invalid API key',
+        message: 'API key not found or invalid'
       };
 
     } catch (error) {

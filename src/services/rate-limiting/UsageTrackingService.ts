@@ -112,9 +112,11 @@ export class UsageTrackingService {
     try {
       // Get user's subscription to determine rate limits
       const subscription = await this.subscriptionDataAccess.getSubscriptionByUserId(parseInt(userId));
-      const planLimits = this.planConfigService.getUserPlanLimits(
+      const planLimits = this.planConfigService.getUserPlanLimitsWithSubscription(
         subscription?.status || null,
-        subscription?.planId || null
+        subscription?.planId || null,
+        subscription?.cancelAtPeriodEnd || null,
+        subscription?.currentPeriodEnd || null
       );
 
       this.loggingService.debug(`[USAGE_TRACKING] Checking rate limits for API key: ${apiKey.substring(0, 10)}..., User ID: ${userId}`);
