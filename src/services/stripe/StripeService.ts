@@ -118,15 +118,6 @@ export class StripeService {
     }
   }
 
-  async getSubscription(subscriptionId: string): Promise<Stripe.Subscription | null> {
-    try {
-      const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
-      return subscription;
-    } catch (error) {
-      this.loggingService.error(`[STRIPE_SERVICE] Error retrieving subscription: ${error}`);
-      return null;
-    }
-  }
 
   async getCustomer(customerId: string): Promise<Stripe.Customer | null> {
     try {
