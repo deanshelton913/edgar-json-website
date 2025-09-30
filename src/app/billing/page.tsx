@@ -49,7 +49,6 @@ export default function Billing() {
   const [billingInfo, setBillingInfo] = useState<BillingInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [upgradingPlanId, setUpgradingPlanId] = useState<string | null>(null);
-  const [isDowngrading, setIsDowngrading] = useState(false);
   const [isReactivating, setIsReactivating] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
   const [isManagingBilling, setIsManagingBilling] = useState(false);
@@ -213,31 +212,6 @@ export default function Billing() {
     }
   };
 
-  const handleDowngradeCanceled = async () => {
-    setIsDowngrading(true);
-    setError(null);
-    
-    try {
-      const response = await fetch('/api/billing/downgrade-canceled', {
-        method: 'POST',
-      });
-
-      if (response.ok) {
-        // Refresh subscription data
-        await loadBillingData();
-        setError(null);
-        // You could add a success message here
-      } else {
-        const errorData = await response.json();
-        setError(errorData.error || 'Failed to downgrade API limits');
-      }
-    } catch (error) {
-      console.error('Error downgrading canceled subscription:', error);
-      setError('Failed to downgrade API limits');
-    } finally {
-      setIsDowngrading(false);
-    }
-  };
 
   const handleReactivateSubscription = async () => {
     setIsReactivating(true);
@@ -416,7 +390,7 @@ export default function Billing() {
               const currentPlan = getCurrentPlan();
               const isCurrentPlan = currentPlan?.id === plan.id;
               const isFree = plan.id === 'free';
-              const isDowngrade = currentSubscription?.planId === 'enterprise' && plan.id === 'pro';
+              const isDowngrade = currentPlan?.id === 'enterprise' && plan.id === 'pro';
               const showPopular = plan.popular && currentSubscription?.planId !== 'enterprise' && !isCurrentPlan;
               
               return (
@@ -590,13 +564,6 @@ export default function Billing() {
                           className="px-4 py-2 bg-green-100 text-green-800 text-sm font-medium rounded-md hover:bg-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {isReactivating ? 'Reactivating...' : 'Keep Pro Plan'}
-                        </button>
-                        <button
-                          onClick={handleDowngradeCanceled}
-                          disabled={isDowngrading}
-                          className="px-4 py-2 bg-yellow-100 text-yellow-800 text-sm font-medium rounded-md hover:bg-yellow-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {isDowngrading ? 'Downgrading...' : 'Switch to Free Limits Now'}
                         </button>
                       </>
                     )}

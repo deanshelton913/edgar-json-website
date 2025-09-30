@@ -367,6 +367,23 @@ export class StripeService {
     }
   }
 
+  /**
+   * Get a subscription by ID from Stripe
+   */
+  async getSubscription(subscriptionId: string): Promise<Stripe.Subscription> {
+    try {
+      this.loggingService.debug(`[STRIPE_SERVICE] Getting subscription: ${subscriptionId}`);
+      
+      const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
+      
+      this.loggingService.debug(`[STRIPE_SERVICE] Retrieved subscription: ${subscription.id}, status: ${subscription.status}`);
+      return subscription;
+    } catch (error) {
+      this.loggingService.error(`[STRIPE_SERVICE] Error getting subscription: ${error}`);
+      throw error;
+    }
+  }
+
   getPublishableKey(): string {
     return this.config.publishableKey;
   }

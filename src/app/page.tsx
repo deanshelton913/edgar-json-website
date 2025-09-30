@@ -53,20 +53,7 @@ export default function Home() {
 					<span className="font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent"> Save 75-80% on AI processing costs</span> with clean, structured data.
 				</p>
 				
-				<div className="text-center mt-8">
-							<div className="inline-flex items-center gap-4 bg-gradient-to-r from-green-100 to-emerald-100 rounded-2xl p-6 border-2 border-green-200">
-								<div className="text-4xl">💰</div>
-								<div>
-									<p className="text-3xl font-black text-green-600 mb-1">
-										Save 75-80% on AI processing costs!
-									</p>
-									<p className="text-sm text-gray-600">
-										Sources: <a href="https://openai.com/pricing" target="_blank" rel="noopener noreferrer" className="underline hover:text-green-600">OpenAI API Pricing</a> | 
-										<a href="https://www.sec.gov/newsroom/speeches-statements/lee-structured-data-2020-11-17" target="_blank" rel="noopener noreferrer" className="underline ml-1 hover:text-green-600">SEC Structured Data Benefits</a>
-									</p>
-								</div>
-							</div>
-						</div>
+				
 				<button
 					onClick={handleCTAClick}
 					disabled={isLoading}
@@ -369,6 +356,20 @@ FILER:
 										<p className="text-3xl font-black text-green-600">$2-3</p>
 										<p className="text-sm text-green-600">per analysis</p>
 									</div>
+								</div>
+							</div>
+						</div>
+						<div className="text-center mt-8">
+							<div className="inline-flex items-center gap-4 bg-gradient-to-r from-green-100 to-emerald-100 rounded-2xl p-6 border-2 border-green-200">
+								<div className="text-4xl">💰</div>
+								<div>
+									<p className="text-3xl font-black text-green-600 mb-1">
+										Save 75-80% on AI processing costs!
+									</p>
+									<p className="text-sm text-gray-600">
+										Sources: <a href="https://openai.com/pricing" target="_blank" rel="noopener noreferrer" className="underline hover:text-green-600">OpenAI API Pricing</a> | 
+										<a href="https://www.sec.gov/newsroom/speeches-statements/lee-structured-data-2020-11-17" target="_blank" rel="noopener noreferrer" className="underline ml-1 hover:text-green-600">SEC Structured Data Benefits</a>
+									</p>
 								</div>
 							</div>
 						</div>
