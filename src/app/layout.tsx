@@ -6,25 +6,30 @@ import { SidebarProvider } from "./contexts/SidebarContext";
 import MainContent from "./components/MainContent";
 
 export const metadata: Metadata = {
-	title: "EDGAR-JSON API | Convert SEC Filings to JSON | Free Developer API",
+	title: "EDGAR-JSON API | AI-Optimized SEC Data | Save 75% on AI Processing Costs",
 	description:
-		"Transform SEC EDGAR filings into structured JSON with our free API. Perfect for developers building financial apps, compliance tools, and data analysis. 100 free requests/day.",
+		"Transform SEC EDGAR filings into structured JSON for AI analysis. Save 75-80% on AI processing costs with clean, structured data. Perfect for AI developers, fintech, and automated trading. Free tier available.",
 	keywords: [
 		"SEC API",
 		"EDGAR API", 
 		"SEC filings JSON",
-		"financial data API",
+		"AI financial data",
 		"SEC EDGAR JSON",
-		"developer API",
+		"AI developer API",
 		"SEC filing parser",
-		"financial compliance API",
+		"AI compliance API",
 		"SEC data extraction",
 		"EDGAR filing API",
 		"SEC 10-K API",
 		"SEC 10-Q API",
 		"SEC 8-K API",
-		"financial reporting API",
-		"SEC filing converter"
+		"AI financial analysis",
+		"SEC filing converter",
+		"AI processing costs",
+		"structured financial data",
+		"AI trading algorithms",
+		"automated due diligence",
+		"AI investment research"
 	],
 	authors: [{ name: "Dean Shelton" }],
 	creator: "Dean Shelton",
