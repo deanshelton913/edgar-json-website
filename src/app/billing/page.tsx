@@ -48,7 +48,7 @@ export default function Billing() {
   const [currentSubscription, setCurrentSubscription] = useState<CurrentSubscription | null>(null);
   const [billingInfo, setBillingInfo] = useState<BillingInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isUpgrading, setIsUpgrading] = useState(false);
+  const [upgradingPlanId, setUpgradingPlanId] = useState<string | null>(null);
   const [isDowngrading, setIsDowngrading] = useState(false);
   const [isReactivating, setIsReactivating] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
@@ -131,7 +131,7 @@ export default function Billing() {
   const handleUpgrade = async (planId: string) => {
     if (planId === 'free') return;
     
-    setIsUpgrading(true);
+    setUpgradingPlanId(planId);
     try {
       const response = await fetch('/api/billing/create-checkout-session', {
         method: 'POST',
@@ -152,7 +152,7 @@ export default function Billing() {
       console.error('Error creating checkout session:', error);
       setError('Failed to create checkout session');
     } finally {
-      setIsUpgrading(false);
+      setUpgradingPlanId(null);
     }
   };
 
@@ -432,7 +432,7 @@ export default function Billing() {
 
                   <button
                     onClick={() => handleUpgrade(plan.id)}
-                    disabled={isCurrentPlan || isFree || isUpgrading}
+                    disabled={isCurrentPlan || isFree || upgradingPlanId !== null}
                     className={`w-full py-2 px-4 rounded-md text-sm font-medium transition-colors ${
                       isCurrentPlan
                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -443,7 +443,7 @@ export default function Billing() {
                         : 'bg-blue-600 text-white hover:bg-blue-700'
                     }`}
                   >
-                    {isUpgrading ? 'Processing...' : 
+                    {upgradingPlanId === plan.id ? 'Processing...' : 
                      isCurrentPlan ? 'Current Plan' : 
                      isFree ? 'Free Plan' : 
                      isDowngrade ? 'Downgrade' : 
