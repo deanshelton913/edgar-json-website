@@ -49,10 +49,14 @@ export class CreatePortalSessionRouteService {
       const userId = authResult.userId!;
       this.loggingService.debug(`[CREATE_PORTAL_ROUTE] Creating portal session for user: ${userId}`);
 
+      // Get or create default portal configuration
+      const configurationId = await this.stripeService.getOrCreateDefaultPortalConfiguration();
+
       // Create billing portal session
       const session = await this.stripeService.createPortalSession({
         userId,
         returnUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/billing`,
+        configurationId,
       });
 
       this.loggingService.debug(`[CREATE_PORTAL_ROUTE] Portal session created: ${session.id} for user: ${userId}`);

@@ -6,12 +6,18 @@ import Link from 'next/link';
 interface SubscriptionPlan {
   id: string;
   name: string;
-  price: number;
-  interval: 'month' | 'year';
+  description?: string;
   requestsPerMinute: number;
   requestsPerDay: number;
   features: string[];
   popular?: boolean;
+  prices: {
+    id: string;
+    amount: number;
+    currency: string;
+    interval: string;
+    intervalCount: number;
+  }[];
 }
 
 interface CurrentSubscription {
@@ -38,6 +44,7 @@ interface BillingInfo {
 export default function Billing() {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [currentSubscription, setCurrentSubscription] = useState<CurrentSubscription | null>(null);
   const [billingInfo, setBillingInfo] = useState<BillingInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -45,58 +52,38 @@ export default function Billing() {
   const [isDowngrading, setIsDowngrading] = useState(false);
   const [isReactivating, setIsReactivating] = useState(false);
   const [isCanceling, setIsCanceling] = useState(false);
+  const [isManagingBilling, setIsManagingBilling] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
 
-  // Available subscription plans
-  const plans: SubscriptionPlan[] = [
-    {
-      id: 'free',
-      name: 'Free',
-      price: 0,
-      interval: 'month',
-      requestsPerMinute: 10,
-      requestsPerDay: 100,
-      features: [
-        '100 requests per day',
-        '10 requests per minute',
-        'Basic support',
-        'Standard API access'
-      ]
-    },
-    {
-      id: 'pro',
-      name: 'Pro',
-      price: 19.99,
-      interval: 'month',
-      requestsPerMinute: 100,
-      requestsPerDay: 10000,
-      features: [
-        '10,000 requests per day',
-        '100 requests per minute',
-        'Priority support',
-        'Standard API access',
-        'Webhooks (coming soon)'
-      ],
-      popular: true
-    },
-    {
-      id: 'enterprise',
-      name: 'Enterprise',
-      price: 200,
-      interval: 'month',
-      requestsPerMinute: 500,
-      requestsPerDay: 50000,
-      features: [
-        '50,000 requests per day',
-        '500 requests per minute',
-        '24/7 dedicated support',
-        'Standard API access',
-        'Webhooks (coming soon)',
-        'Custom integrations',
-        'SLA guarantee'
-      ]
+  // Fetch pricing plans from Stripe
+  const fetchPricingPlans = async () => {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      const response = await fetch('/api/billing/pricing', {
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setPlans(data.plans);
+          console.log('Pricing plans loaded:', data.plans.length, 'plans');
+        } else {
+          console.error('Failed to fetch pricing plans:', data.error);
+        }
+      } else {
+        console.error('Failed to fetch pricing plans, status:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching pricing plans:', error);
+      // Set empty plans to stop loading state
+      setPlans([]);
     }
-  ];
+  };
 
   // Load billing data function
   const loadBillingData = async () => {
@@ -111,19 +98,22 @@ export default function Billing() {
 
       setIsAuthenticated(true);
 
-      // Load current subscription
-      const subscriptionResponse = await fetch('/api/billing/subscription');
-      if (subscriptionResponse.ok) {
-        const subscriptionData = await subscriptionResponse.json();
-        setCurrentSubscription(subscriptionData);
-      }
-
-      // Load billing information
-      const billingResponse = await fetch('/api/billing/info');
-      if (billingResponse.ok) {
-        const billingData = await billingResponse.json();
-        setBillingInfo(billingData);
-      }
+      // Fetch pricing plans and other data in parallel
+      await Promise.all([
+        fetchPricingPlans(),
+        fetch('/api/billing/subscription').then(async (response) => {
+          if (response.ok) {
+            const subscriptionData = await response.json();
+            setCurrentSubscription(subscriptionData);
+          }
+        }),
+        fetch('/api/billing/info').then(async (response) => {
+          if (response.ok) {
+            const billingData = await response.json();
+            setBillingInfo(billingData);
+          }
+        })
+      ]);
 
     } catch (error) {
       console.error('Error loading billing data:', error);
@@ -167,6 +157,9 @@ export default function Billing() {
   };
 
   const handleManageBilling = async () => {
+    setIsManagingBilling(true);
+    setError(null);
+    
     try {
       const response = await fetch('/api/billing/create-portal-session', {
         method: 'POST',
@@ -177,11 +170,18 @@ export default function Billing() {
         window.location.href = url;
       } else {
         const errorData = await response.json();
-        setError(errorData.message || 'Failed to create billing portal session');
+        // Provide more specific error messages
+        if (errorData.message && errorData.message.includes('configuration')) {
+          setError('Billing portal is not properly configured. Please contact support or try again later.');
+        } else {
+          setError(errorData.message || 'Failed to create billing portal session');
+        }
       }
     } catch (error) {
       console.error('Error creating billing portal session:', error);
-      setError('Failed to create billing portal session');
+      setError('Failed to create billing portal session. Please check your internet connection and try again.');
+    } finally {
+      setIsManagingBilling(false);
     }
   };
 
@@ -252,10 +252,14 @@ export default function Billing() {
         // Refresh subscription data
         await loadBillingData();
         setError(null);
-        // You could add a success message here
       } else {
         const errorData = await response.json();
-        setError(errorData.error || 'Failed to reactivate subscription');
+        // Provide more user-friendly error messages
+        if (errorData.message && errorData.message.includes('canceled subscription can only update its cancellation_details')) {
+          setError('This subscription has already been fully canceled and cannot be reactivated. Please contact support or create a new subscription.');
+        } else {
+          setError(errorData.error || 'Failed to reactivate subscription');
+        }
       }
     } catch (error) {
       console.error('Error reactivating subscription:', error);
@@ -265,17 +269,28 @@ export default function Billing() {
     }
   };
 
+  // Helper function to get the monthly price for a plan
+  const getMonthlyPrice = (plan: SubscriptionPlan) => {
+    const monthlyPrice = plan.prices.find(price => price.interval === 'month');
+    return monthlyPrice ? monthlyPrice.amount / 100 : 0; // Convert from cents to dollars
+  };
+
+  // Helper function to format price
+  const formatPrice = (amount: number) => {
+    return amount === 0 ? 'Free' : `$${amount.toFixed(2)}`;
+  };
+
   const getCurrentPlan = () => {
-    if (!currentSubscription) return plans[0]; // Default to free
+    if (!currentSubscription || plans.length === 0) return plans[0] || null; // Default to free
     return plans.find(plan => plan.id === currentSubscription.planId) || plans[0];
   };
 
   const getFuturePlan = () => {
-    if (!currentSubscription) return plans[0]; // Default to free
+    if (!currentSubscription || plans.length === 0) return plans[0] || null; // Default to free
     
     // If subscription is canceled at period end, will downgrade to Free
     if (currentSubscription.cancelAtPeriodEnd) {
-      return plans[0]; // Free plan
+      return plans.find(plan => plan.id === 'free') || plans[0]; // Free plan
     }
     
     // Otherwise stays on current plan
@@ -357,12 +372,19 @@ export default function Billing() {
         <div className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-900 mb-6">Available Plans</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {plans.map((plan) => {
+          {plans.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading pricing plans...</p>
+              <p className="text-sm text-gray-500 mt-2">If this takes too long, pricing may not be configured yet.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {plans.map((plan) => {
               const isCurrentPlan = currentSubscription?.planId === plan.id;
               const isFree = plan.id === 'free';
               const isDowngrade = currentSubscription?.planId === 'enterprise' && plan.id === 'pro';
-              const showPopular = plan.popular && currentSubscription?.planId !== 'enterprise';
+              const showPopular = plan.popular && currentSubscription?.planId !== 'enterprise' && !isCurrentPlan;
               
               return (
                 <div
@@ -373,15 +395,15 @@ export default function Billing() {
                 >
                   {showPopular && (
                     <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                      <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
                         Most Popular
                       </span>
                     </div>
                   )}
                   
                   {isCurrentPlan && (
-                    <div className="absolute -top-3 right-4">
-                      <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
                         Current Plan
                       </span>
                     </div>
@@ -391,9 +413,9 @@ export default function Billing() {
                     <h3 className="text-xl font-semibold text-gray-900">{plan.name}</h3>
                     <div className="mt-2">
                       <span className="text-4xl font-bold text-gray-900">
-                        ${plan.price}
+                        {formatPrice(getMonthlyPrice(plan))}
                       </span>
-                      <span className="text-gray-600">/{plan.interval}</span>
+                      <span className="text-gray-600">/month</span>
                     </div>
                   </div>
 
@@ -430,42 +452,48 @@ export default function Billing() {
                 </div>
               );
             })}
-          </div>
+            </div>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Current Subscription */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Current Plan</h2>
+        {/* Combined Subscription & Billing Information */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 relative">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Account & Billing</h2>
+          
+          {/* Status badge positioned at top right */}
+          {currentSubscription && (
+            <span className={`absolute top-6 right-6 px-3 py-1 rounded-full text-sm font-medium ${
+              currentSubscription.status === 'active' && !currentSubscription.cancelAtPeriodEnd
+                ? 'bg-green-100 text-green-800' 
+                : currentSubscription.cancelAtPeriodEnd
+                ? 'bg-yellow-100 text-yellow-800'
+                : 'bg-red-100 text-red-800'
+            }`}>
+              {currentSubscription.status === 'active' && !currentSubscription.cancelAtPeriodEnd
+                ? 'Active' 
+                : currentSubscription.cancelAtPeriodEnd
+                ? 'Scheduled for Cancellation'
+                : 'Inactive'}
+            </span>
+          )}
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Current Subscription */}
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Current Plan</h3>
               
               {currentSubscription ? (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900">{getCurrentPlan().name} Plan</h3>
-                      <p className="text-sm text-gray-600">
-                        {getCurrentPlan().price === 0 ? 'Free' : `$${getCurrentPlan().price}/${getCurrentPlan().interval}`}
+                  <div>
+                    <h4 className="text-lg font-medium text-gray-900">{getCurrentPlan()?.name || 'Unknown'} Plan</h4>
+                    <p className="text-sm text-gray-600">
+                      {getCurrentPlan() ? formatPrice(getMonthlyPrice(getCurrentPlan()!)) : 'Free'}
+                    </p>
+                    {currentSubscription.cancelAtPeriodEnd && getFuturePlan()?.id !== getCurrentPlan()?.id && (
+                      <p className="text-sm text-orange-600 mt-1">
+                        Will downgrade to {getFuturePlan()?.name || 'Free'} Plan on {new Date(currentSubscription.currentPeriodEnd).toLocaleDateString()}
                       </p>
-                      {currentSubscription.cancelAtPeriodEnd && getFuturePlan().id !== getCurrentPlan().id && (
-                        <p className="text-sm text-orange-600 mt-1">
-                          Will downgrade to {getFuturePlan().name} Plan on {new Date(currentSubscription.currentPeriodEnd).toLocaleDateString()}
-                        </p>
-                      )}
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      currentSubscription.status === 'active' && !currentSubscription.cancelAtPeriodEnd
-                        ? 'bg-green-100 text-green-800' 
-                        : currentSubscription.cancelAtPeriodEnd
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {currentSubscription.status === 'active' && !currentSubscription.cancelAtPeriodEnd
-                        ? 'Active' 
-                        : currentSubscription.cancelAtPeriodEnd
-                        ? 'Scheduled for Cancellation'
-                        : 'Inactive'}
-                    </span>
+                    )}
                   </div>
 
                   {(currentSubscription.status === 'active' || currentSubscription.cancelAtPeriodEnd) && (
@@ -479,12 +507,13 @@ export default function Billing() {
                     </div>
                   )}
 
-                  <div className="flex space-x-3">
+                  <div className="flex flex-wrap gap-3">
                     <button
                       onClick={handleManageBilling}
-                      className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                      disabled={isManagingBilling}
+                      className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Manage Billing
+                      {isManagingBilling ? 'Opening Portal...' : 'Manage Billing'}
                     </button>
                     {/* Show buttons based on subscription status */}
                     {currentSubscription.status === 'active' && currentSubscription.planId !== 'free' && !currentSubscription.cancelAtPeriodEnd && (
@@ -499,7 +528,7 @@ export default function Billing() {
                     
                     {/* Show reactivate/downgrade buttons for canceled subscriptions */}
                     {currentSubscription.cancelAtPeriodEnd && currentSubscription.planId !== 'free' && (
-                      <div className="flex space-x-3">
+                      <>
                         <button
                           onClick={handleReactivateSubscription}
                           disabled={isReactivating}
@@ -514,22 +543,20 @@ export default function Billing() {
                         >
                           {isDowngrading ? 'Downgrading...' : 'Switch to Free Limits Now'}
                         </button>
-                      </div>
+                      </>
                     )}
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-8">
+                <div className="text-center py-4">
                   <p className="text-gray-600">No active subscription found.</p>
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Billing Information */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Billing Information</h2>
+            {/* Billing Information */}
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Billing Information</h3>
               
               {billingInfo ? (
                 <div className="space-y-3">

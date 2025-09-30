@@ -47,6 +47,7 @@ export const users = pgTable('users', {
   name: varchar('name', { length: 255 }),
   provider: varchar('provider', { length: 50 }).default('google').notNull(),
   providerId: varchar('provider_id', { length: 255 }),
+  stripeCustomerId: varchar('stripe_customer_id', { length: 255 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   lastLoginAt: timestamp('last_login_at'),
   isActive: boolean('is_active').default(true).notNull(),
@@ -81,6 +82,17 @@ export const subscriptions = pgTable('subscriptions', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Settings table (key-value store)
+export const settings = pgTable('settings', {
+  id: serial('id').primaryKey(),
+  cuid: varchar('cuid', { length: 128 }).notNull().unique().$defaultFn(() => createId()),
+  key: varchar('key', { length: 255 }).notNull().unique(),
+  value: text('value').notNull(),
+  description: text('description'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // Create indexes for better performance
 export const apiKeysUserIdIndex = apiKeys.userId;
 export const apiKeysCuidIndex = apiKeys.cuid;
@@ -94,6 +106,7 @@ export const rateLimitsExpiresAtIndex = rateLimits.expiresAt;
 export const usersGoogleIdIndex = users.googleId;
 export const usersCuidIndex = users.cuid;
 export const usersEmailIndex = users.email;
+export const usersStripeCustomerIdIndex = users.stripeCustomerId;
 export const tosAgreementsUserIdIndex = tosAgreements.userId;
 export const tosAgreementsCuidIndex = tosAgreements.cuid;
 export const tosAgreementsAgreedAtIndex = tosAgreements.agreedAt;
@@ -102,6 +115,8 @@ export const subscriptionsCuidIndex = subscriptions.cuid;
 export const subscriptionsStripeCustomerIdIndex = subscriptions.stripeCustomerId;
 export const subscriptionsStripeSubscriptionIdIndex = subscriptions.stripeSubscriptionId;
 export const subscriptionsStatusIndex = subscriptions.status;
+export const settingsKeyIndex = settings.key;
+export const settingsCuidIndex = settings.cuid;
 
 // Define relations
 export const usersRelations = relations(users, ({ many }) => ({

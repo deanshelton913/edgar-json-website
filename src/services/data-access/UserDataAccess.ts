@@ -11,6 +11,7 @@ export interface UserData {
   name?: string;
   provider: string;
   providerId?: string;
+  stripeCustomerId?: string;
   lastLoginAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
@@ -157,6 +158,7 @@ export class UserDataAccess {
           name: user.name || undefined,
           provider: user.provider,
           providerId: user.providerId || undefined,
+          stripeCustomerId: user.stripeCustomerId || undefined,
           lastLoginAt: user.lastLoginAt || undefined,
           createdAt: user.createdAt || undefined,
           updatedAt: undefined,
@@ -166,6 +168,47 @@ export class UserDataAccess {
       return null;
     } catch (error) {
       this.loggingService.error(`Error getting user by ID: ${error}`);
+      throw error;
+    }
+  }
+
+  async updateStripeCustomerId(userId: number, stripeCustomerId: string): Promise<void> {
+    try {
+      await db.update(users)
+        .set({ stripeCustomerId })
+        .where(eq(users.id, userId));
+      
+      this.loggingService.debug(`[USER_DATA_ACCESS] Updated Stripe customer ID for user ${userId}: ${stripeCustomerId}`);
+    } catch (error) {
+      this.loggingService.error(`[USER_DATA_ACCESS] Error updating Stripe customer ID: ${error}`);
+      throw error;
+    }
+  }
+
+  async getUserByStripeCustomerId(stripeCustomerId: string): Promise<UserData | null> {
+    try {
+      const result = await db.select().from(users).where(eq(users.stripeCustomerId, stripeCustomerId)).limit(1);
+      
+      if (result.length === 0) {
+        return null;
+      }
+
+      const user = result[0];
+      return {
+        id: user.id,
+        cuid: user.cuid,
+        googleId: user.googleId,
+        email: user.email,
+        name: user.name || undefined,
+        provider: user.provider,
+        providerId: user.providerId || undefined,
+        stripeCustomerId: user.stripeCustomerId || undefined,
+        lastLoginAt: user.lastLoginAt || undefined,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      };
+    } catch (error) {
+      this.loggingService.error(`[USER_DATA_ACCESS] Error getting user by Stripe customer ID: ${error}`);
       throw error;
     }
   }

@@ -1,6 +1,7 @@
 import { injectable, inject } from 'tsyringe';
 import Stripe from 'stripe';
 import { LoggingService } from "@/services/LoggingService";
+import { UserDataAccess } from "@/services/data-access/UserDataAccess";
 
 export interface StripeConfig {
   secretKey: string;
@@ -19,6 +20,7 @@ export interface CreateCheckoutSessionParams {
 export interface CreatePortalSessionParams {
   userId: string;
   returnUrl: string;
+  configurationId?: string;
 }
 
 @injectable()
@@ -28,6 +30,7 @@ export class StripeService {
 
   constructor(
     @inject('LoggingService') private loggingService: LoggingService,
+    @inject('UserDataAccess') private userDataAccess: UserDataAccess,
   ) {
     this.config = {
       secretKey: process.env.STRIPE_SECRET_KEY!,
@@ -52,6 +55,9 @@ export class StripeService {
 
       const priceId = this.getPriceIdForPlan(params.planId);
       
+      // First, get or create a customer to ensure payment methods are properly linked
+      const customer = await this.getOrCreateCustomer(params.userId);
+      
       const session = await this.stripe.checkout.sessions.create({
         mode: 'subscription',
         payment_method_types: ['card'],
@@ -61,7 +67,7 @@ export class StripeService {
             quantity: 1,
           },
         ],
-        customer_email: params.email,
+        customer: customer.id, // Use customer ID instead of customer_email
         metadata: {
           userId: params.userId,
           planId: params.planId,
@@ -91,10 +97,18 @@ export class StripeService {
       // First, get or create a customer
       const customer = await this.getOrCreateCustomer(params.userId);
 
-      const session = await this.stripe.billingPortal.sessions.create({
+      // Create portal session with configuration
+      const sessionParams: Stripe.BillingPortal.SessionCreateParams = {
         customer: customer.id,
         return_url: params.returnUrl,
-      });
+      };
+
+      // Add configuration if provided
+      if (params.configurationId) {
+        sessionParams.configuration = params.configurationId;
+      }
+
+      const session = await this.stripe.billingPortal.sessions.create(sessionParams);
 
       this.loggingService.debug(`[STRIPE_SERVICE] Portal session created: ${session.id}`);
       return session;
@@ -126,11 +140,30 @@ export class StripeService {
 
   async getOrCreateCustomer(userId: string): Promise<Stripe.Customer> {
     try {
-      // For now, we'll create a new customer each time
-      // In production, you might want to store the customer ID in your database
+      // First, try to get the user from the database
+      const user = await this.userDataAccess.getUserById(parseInt(userId));
+      
+      if (user && user.stripeCustomerId) {
+        // User has an existing Stripe customer ID, retrieve it
+        try {
+          const customer = await this.stripe.customers.retrieve(user.stripeCustomerId) as Stripe.Customer;
+          this.loggingService.debug(`[STRIPE_SERVICE] Retrieved existing customer: ${customer.id} for user: ${userId}`);
+          return customer;
+        } catch (error) {
+          this.loggingService.warn(`[STRIPE_SERVICE] Failed to retrieve customer ${user.stripeCustomerId}, creating new one`);
+          // Customer might be deleted in Stripe, fall through to create new one
+        }
+      }
+
+      // Create a new customer
       const customer = await this.stripe.customers.create({
         metadata: { userId },
       });
+
+      // Store the customer ID in the database
+      if (user) {
+        await this.userDataAccess.updateStripeCustomerId(user.id, customer.id);
+      }
 
       this.loggingService.debug(`[STRIPE_SERVICE] Created new customer: ${customer.id} for user: ${userId}`);
       return customer;
@@ -241,6 +274,96 @@ export class StripeService {
     } catch (error) {
       this.loggingService.error(`[STRIPE_SERVICE] Error getting checkout session: ${error}`);
       return null;
+    }
+  }
+
+  /**
+   * Create a default billing portal configuration
+   */
+  async createDefaultPortalConfiguration(): Promise<Stripe.BillingPortal.Configuration> {
+    try {
+      this.loggingService.debug('[STRIPE_SERVICE] Creating default portal configuration');
+
+      const configuration = await this.stripe.billingPortal.configurations.create({
+        business_profile: {
+          headline: 'Edgar JSON API - Billing Management',
+        },
+        features: {
+          payment_method_update: {
+            enabled: true,
+          },
+          subscription_cancel: {
+            enabled: true,
+            mode: 'at_period_end',
+            cancellation_reason: {
+              enabled: true,
+              options: [
+                'too_expensive',
+                'missing_features',
+                'switched_service',
+                'unused',
+                'other',
+              ],
+            },
+          },
+          subscription_update: {
+            enabled: false, // Disabled to avoid products parameter requirement
+          },
+        },
+      });
+
+      this.loggingService.debug(`[STRIPE_SERVICE] Default portal configuration created: ${configuration.id}`);
+      return configuration;
+    } catch (error) {
+      this.loggingService.error(`[STRIPE_SERVICE] Error creating default portal configuration: ${error}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Get or create a default portal configuration
+   */
+  async getOrCreateDefaultPortalConfiguration(): Promise<string> {
+    try {
+      // Try to get existing configurations
+      const configurations = await this.stripe.billingPortal.configurations.list({
+        limit: 1,
+      });
+
+      if (configurations.data.length > 0) {
+        const existingConfig = configurations.data[0];
+        
+        // Check if the existing configuration has the required products parameter
+        const hasProductsParam = existingConfig.features?.subscription_update?.products !== undefined;
+        
+        if (hasProductsParam) {
+          this.loggingService.debug(`[STRIPE_SERVICE] Using existing portal configuration: ${existingConfig.id}`);
+          return existingConfig.id;
+        } else {
+          this.loggingService.debug(`[STRIPE_SERVICE] Existing configuration missing products param, updating: ${existingConfig.id}`);
+          
+          // Update the existing configuration to include products parameter
+          await this.stripe.billingPortal.configurations.update(existingConfig.id, {
+            features: {
+              ...existingConfig.features,
+              subscription_update: {
+                ...existingConfig.features?.subscription_update,
+                products: [], // Empty array allows all products
+              },
+            },
+          });
+          
+          this.loggingService.debug(`[STRIPE_SERVICE] Updated existing portal configuration: ${existingConfig.id}`);
+          return existingConfig.id;
+        }
+      }
+
+      // Create a new default configuration
+      const configuration = await this.createDefaultPortalConfiguration();
+      return configuration.id;
+    } catch (error) {
+      this.loggingService.error(`[STRIPE_SERVICE] Error getting/creating default portal configuration: ${error}`);
+      throw error;
     }
   }
 

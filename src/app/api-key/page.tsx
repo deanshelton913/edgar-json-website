@@ -423,13 +423,13 @@ export default function ApiKey() {
   }
 
   return (
-    <div className="p-8 max-w-4xl mx-auto bg-white shadow-xl rounded-lg mt-12">
+    <div className="p-4 md:p-8 max-w-4xl mx-auto bg-white shadow-xl rounded-lg mt-4 md:mt-12">
       {/* Header */}
-      <div className="text-center mb-8">
+      <div className="text-center mb-6 md:mb-8">
         <div className="text-center mb-4">
-          <h2 className="text-3xl font-bold text-gray-900">API Key Management 🔑</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">API Key Management 🔑</h2>
         </div>
-        <p className="text-gray-600">
+        <p className="text-sm md:text-base text-gray-600 px-4">
           Manage your API keys for accessing the EDGAR JSON API
         </p>
       </div>
@@ -446,13 +446,13 @@ export default function ApiKey() {
             </div>
             
             <div className="bg-white border border-green-200 rounded-md p-4 mb-4">
-              <div className="flex items-center justify-between">
-                <code className="text-lg font-mono text-gray-800">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <code className="text-sm md:text-lg font-mono text-gray-800 break-all flex-1">
                   {obfuscateApiKey(apiKeyData.apiKey)}
                 </code>
                 <button
                   onClick={() => copyToClipboard(apiKeyData.apiKey)}
-                  className="ml-4 px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                  className="px-3 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 flex-shrink-0"
                 >
                   {copied ? (
                     <>
@@ -473,7 +473,7 @@ export default function ApiKey() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
               <div>
                 <span className="text-gray-600">Usage Count:</span>
                 <span className="ml-2 font-medium">{apiKeyData.usageCount}</span>
@@ -504,37 +504,42 @@ export default function ApiKey() {
               </div>
             </div>
             
-            {/* Action Buttons - Bottom */}
-            <div className="flex justify-between items-center mt-4">
-              <div className="flex space-x-3">
+            {/* Action Buttons - Mobile Responsive */}
+            <div className="mt-6 space-y-3">
+              {/* Upgrade Button - Largest and Most Prominent */}
+              <a
+                href="/billing"
+                className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white text-base font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center space-x-3"
+              >
+                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span>Upgrade API Key</span>
+              </a>
+              
+              {/* Secondary Actions Row */}
+              <div className="flex flex-col sm:flex-row gap-3">
                 <a
-                  href="/billing"
-                  className="px-4 py-2 bg-blue-100 text-blue-800 text-sm font-medium rounded-md hover:bg-blue-200 transition-colors flex items-center space-x-2"
+                  href="/support"
+                  className="flex-1 px-4 py-2 bg-gray-100 text-gray-800 text-sm font-medium rounded-md hover:bg-gray-200 transition-colors flex items-center justify-center space-x-2"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  <span>Upgrade API Key</span>
-                </a>
-                <a
-                  href="/docs"
-                  className="px-4 py-2 bg-gray-100 text-gray-800 text-sm font-medium rounded-md hover:bg-gray-200 transition-colors flex items-center space-x-2"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                   </svg>
                   <span>Test API Key</span>
                 </a>
+                
+                {/* Delete Button */}
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="flex-1 px-4 py-2 bg-red-100 text-red-800 text-sm font-medium rounded-md hover:bg-red-200 transition-colors flex items-center justify-center space-x-2"
+                >
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  <span>Delete API Key</span>
+                </button>
               </div>
-              <button
-                onClick={() => setShowDeleteModal(true)}
-                className="px-4 py-2 bg-red-100 text-red-800 text-sm font-medium rounded-md hover:bg-red-200 transition-colors flex items-center space-x-2"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                <span>Delete API Key</span>
-              </button>
             </div>
           </div>
 
@@ -546,7 +551,7 @@ export default function ApiKey() {
               </svg>
               Rate Limits
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-white border border-yellow-200 rounded-md p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-700">Per Minute</span>
@@ -579,28 +584,28 @@ export default function ApiKey() {
           </div>
 
           {/* Test API Section */}
-          <div className="mt-8 p-6 bg-blue-50 rounded-lg shadow-md">
-            <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+          <div className="mt-8 p-4 md:p-6 bg-blue-50 rounded-lg shadow-md">
+            <h3 className="text-xl md:text-2xl font-semibold text-gray-900 mb-4">
               🧪 Test the API
             </h3>
             
             <div className="space-y-4">
-              <p className="text-gray-700">
+              <p className="text-gray-700 text-sm md:text-base">
                 Test the API with your own API key. Modify the JavaScript code below and click &quot;Run Code&quot; to see the JSON response.
               </p>
               
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <textarea
                   value={testCode}
                   onChange={(e) => setTestCode(e.target.value)}
-                  rows={8}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                  rows={6}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-xs md:text-sm"
                   placeholder="Enter your JavaScript fetch code here..."
                 />
                 <button
                   onClick={handleTestApi}
                   disabled={isTesting || !testCode}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="w-full sm:w-auto px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   <PlayIcon className="h-4 w-4" />
                   {isTesting ? 'Running...' : 'Run Code'}
@@ -643,10 +648,10 @@ export default function ApiKey() {
 
           <div className="mt-6 flex justify-center">
             <a
-              href="/docs"
+              href="/support"
               className="inline-flex items-center px-5 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
             >
-              📄 View API Documentation
+              🛠️ Get Support
             </a>
           </div>
           </div>
