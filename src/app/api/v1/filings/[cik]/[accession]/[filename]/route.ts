@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { container } from "@/lib/container";
+import { container } from "@/lib/container-server";
 import { SecParserService } from "@/services/parsing/SecParserService";
 import { LoggingService } from "@/services/LoggingService";
 import { RateLimitMiddleware, RateLimitResult } from "@/middleware/RateLimitMiddleware";

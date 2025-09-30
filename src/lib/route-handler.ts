@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { container } from '@/lib/container';
+import { container } from '@/lib/container-client';
 import { LoggingService } from '@/services/LoggingService';
 import { initializeRedisForRoute, cleanupRedisForRoute } from '@/lib/redis';
 

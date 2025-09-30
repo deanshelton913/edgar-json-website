@@ -1,6 +1,5 @@
 import { injectable, inject } from "tsyringe";
 import { NextRequest } from "next/server";
-import { CookieAuthorizerService } from "../authorizers/CookieAuthorizerService";
 import { SubscriptionDataAccess } from "../data-access/SubscriptionDataAccess";
 import { ApiKeyDataAccess } from "../data-access/ApiKeyDataAccess";
 import { ApiKeyCacheService } from "../ApiKeyCacheService";
@@ -17,7 +16,6 @@ export interface DowngradeCanceledResult {
 export class DowngradeCanceledRouteService {
   constructor(
     @inject("LoggingService") private loggingService: LoggingService,
-    @inject("CookieAuthorizerService") private cookieAuthorizer: CookieAuthorizerService,
     @inject("SubscriptionDataAccess") private subscriptionDataAccess: SubscriptionDataAccess,
     @inject("ApiKeyDataAccess") private apiKeyDataAccess: ApiKeyDataAccess,
     @inject("ApiKeyCacheService") private apiKeyCacheService: ApiKeyCacheService,
@@ -38,16 +36,11 @@ export class DowngradeCanceledRouteService {
       
       this.loggingService.debug(`[DOWNGRADE_CANCELED_ROUTE] Request from IP: ${ipAddress}, User-Agent: ${userAgent}`);
 
-      // Authenticate user
-      const authResult = await this.cookieAuthorizer.authorizeRequest(request);
+      // Get user ID from middleware headers
+      const userId = request.headers.get('x-user-id');
       
-      if (!authResult.success) {
-        throw FailureByDesign.unauthorized(authResult.message || 'Authentication required');
-      }
-
-      const userId = authResult.userId;
       if (!userId) {
-        throw FailureByDesign.unauthorized('User ID not found');
+        throw FailureByDesign.unauthorized('Authentication required');
       }
 
       // Convert string ID to number for database operations

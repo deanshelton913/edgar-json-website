@@ -1,6 +1,5 @@
 import { injectable, inject } from "tsyringe";
 import { NextRequest } from "next/server";
-import { CookieAuthorizerService } from "../authorizers/CookieAuthorizerService";
 import { StripeService } from "../stripe/StripeService";
 import { SubscriptionDataAccess } from "../data-access/SubscriptionDataAccess";
 import { UserDataAccess } from "../data-access/UserDataAccess";
@@ -27,7 +26,6 @@ export interface BillingInfoResult {
 export class BillingInfoRouteService {
   constructor(
     @inject("LoggingService") private loggingService: LoggingService,
-    @inject("CookieAuthorizerService") private cookieAuthorizer: CookieAuthorizerService,
     @inject("StripeService") private stripeService: StripeService,
     @inject("SubscriptionDataAccess") private subscriptionDataAccess: SubscriptionDataAccess,
     @inject("UserDataAccess") private userDataAccess: UserDataAccess,
@@ -48,19 +46,18 @@ export class BillingInfoRouteService {
       
       this.loggingService.debug(`[BILLING_INFO_ROUTE] Request from IP: ${ipAddress}, User-Agent: ${userAgent}`);
 
-      // Authorize the request using cookie-based authentication
-      const authResult = await this.cookieAuthorizer.authorizeRequest(request);
+      // Get user ID from middleware headers
+      const userId = request.headers.get('x-user-id');
 
-      if (!authResult.success) {
+      if (!userId) {
         this.loggingService.warn('[BILLING_INFO_ROUTE] Unauthorized request');
         return {
           success: false,
           error: 'Unauthorized',
-          message: authResult.message
+          message: 'Please log in to access billing information'
         };
       }
 
-      const userId = authResult.userId!;
       this.loggingService.debug(`[BILLING_INFO_ROUTE] Getting billing info for user: ${userId}`);
 
       // Convert string ID to number for database operations

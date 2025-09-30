@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { container } from '@/lib/container';
+import { container } from '@/lib/container-client';
 import { ApiKeyDeleteRouteService } from '@/services/routes/ApiKeyDeleteRouteService';
 import { handleRouteError } from '@/lib/errors';
 

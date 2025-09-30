@@ -22,6 +22,8 @@
     "@types/rss": "^0.0.32",
     "@types/uuencode": "^0.0.3",
     "@types/xml2js": "^0.4.14",
+    "@upstash/ratelimit": "^2.0.6",
+    "@upstash/redis": "^1.35.4",
     "drizzle-orm": "^0.44.5",
     "fast-xml-parser": "^5.2.5",
     "jose": "^6.1.0",
@@ -49,6 +51,7 @@
     "drizzle-kit": "^0.31.5",
     "eslint": "^9",
     "eslint-config-next": "15.1.6",
+    "null-loader": "^4.0.1",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"

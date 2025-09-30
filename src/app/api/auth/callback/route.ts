@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { container } from '@/lib/container';
+import { container } from '@/lib/container-client';
 import { AuthCallbackRouteService } from '@/services/routes/AuthCallbackRouteService';
 
 export async function GET(request: NextRequest) {

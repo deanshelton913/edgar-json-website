@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { container } from "@/lib/container";
+import { container } from "@/lib/container-client";
 import { BillingInfoRouteService } from "@/services/routes/BillingInfoRouteService";
 import { handleRouteError } from "@/lib/errors";
 

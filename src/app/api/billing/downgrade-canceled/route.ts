@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { container } from '@/lib/container';
+import { container } from '@/lib/container-client';
 import { DowngradeCanceledRouteService } from '@/services/routes/DowngradeCanceledRouteService';
 import { withRedisRouteHandlerJson } from '@/lib/route-handler';
 

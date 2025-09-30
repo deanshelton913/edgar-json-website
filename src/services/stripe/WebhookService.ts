@@ -3,7 +3,7 @@ import { StripeService } from './StripeService';
 import { SubscriptionDataAccess } from '@/services/data-access/SubscriptionDataAccess';
 import { UserDataAccess } from '@/services/data-access/UserDataAccess';
 import { LoggingService } from '@/services/LoggingService';
-import { container } from '@/lib/container';
+import { container } from '@/lib/container-client';
 import Stripe from 'stripe';
 
 export interface StripeWebhookEvent {

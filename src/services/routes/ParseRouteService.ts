@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { SecParserService } from "../parsing/SecParserService";
 import { LoggingService } from "../LoggingService";
 import { UsageTrackingService } from "../rate-limiting/UsageTrackingService";
-import { ApiKeyAuthorizerService } from "../authorizers/ApiKeyAuthorizerService";
 
 export interface ParseRequest {
   filingPath: string;
@@ -30,7 +29,6 @@ export class ParseRouteService {
     @inject("LoggingService") private loggingService: LoggingService,
     @inject("SecParserService") private secParserService: SecParserService,
     @inject("UsageTrackingService") private usageTrackingService: UsageTrackingService,
-    @inject("ApiKeyAuthorizerService") private apiKeyAuthorizer: ApiKeyAuthorizerService,
   ) {}
 
   /**
@@ -64,7 +62,7 @@ export class ParseRouteService {
       }
 
       // Authorize request (if API key is provided)
-      const authResult = await this.authorizeRequest(request);
+      const authResult = this.getAuthInfo(request);
       if (!authResult.success) {
         return this.createErrorResponse(
           'Authorization failed',
@@ -156,7 +154,7 @@ export class ParseRouteService {
       }
 
       // Authorize request (if API key is provided)
-      const authResult = await this.authorizeRequest(request);
+      const authResult = this.getAuthInfo(request);
       if (!authResult.success) {
         return this.createErrorResponse(
           'Authorization failed',
@@ -240,37 +238,28 @@ export class ParseRouteService {
   }
 
   /**
-   * Authorize the request
+   * Get user info from middleware headers
    */
-  private async authorizeRequest(request: NextRequest): Promise<{
+  private getAuthInfo(request: NextRequest): {
     success: boolean;
     apiKey?: string;
     userId?: string;
     message?: string;
-  }> {
-    try {
-      // Check for API key in headers
-      const apiKey = request.headers.get('x-api-key') || request.headers.get('authorization')?.replace('Bearer ', '');
-      
-      if (apiKey) {
-        const authResult = await this.apiKeyAuthorizer.authorizeRequest(request);
-        return {
-          success: authResult.success,
-          apiKey: authResult.apiKey,
-          userId: authResult.userId,
-          message: authResult.message,
-        };
-      }
-
-      // No API key provided - allow request but don't track usage
-      return { success: true };
-    } catch (error) {
-      this.loggingService.error(`[PARSE_ROUTE] Authorization error: ${error}`);
+  } {
+    // Get user info from middleware headers
+    const userId = request.headers.get('x-user-id');
+    const apiKey = request.headers.get('x-api-key');
+    
+    if (userId && apiKey) {
       return {
-        success: false,
-        message: 'Authorization failed',
+        success: true,
+        apiKey: apiKey,
+        userId: userId,
       };
     }
+
+    // No auth provided - allow request but don't track usage
+    return { success: true };
   }
 
   /**

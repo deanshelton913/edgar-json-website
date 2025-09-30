@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { container } from "@/lib/container";
+import { container } from "@/lib/container-server";
 import { UsageTrackingService } from "@/services/rate-limiting/UsageTrackingService";
-import { LoggingService } from "@/services/LoggingService";
 import { RateLimitMiddleware, RateLimitResult } from "@/middleware/RateLimitMiddleware";
 import { withRedisRouteHandlerJson } from "@/lib/route-handler";
 
@@ -11,7 +10,6 @@ export async function GET(request: NextRequest) {
     'V1_USAGE_ROUTE',
     async (req) => {
       const startTime = Date.now();
-      const loggingService = container.resolve(LoggingService);
       let rateLimitResult: RateLimitResult | null = null;
 
       // Check rate limits first
@@ -23,17 +21,12 @@ export async function GET(request: NextRequest) {
         throw new Error(`Rate limit exceeded: ${rateLimitResult.response?.statusText}`);
       }
 
-      // Extract API key from headers
-      const authHeader = req.headers.get("authorization");
-      if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        throw new Error("Missing or invalid Authorization header");
-      }
-
-      const apiKey = authHeader.substring(7);
+      // Get user info from middleware headers
       const userId = req.headers.get("x-user-id");
+      const apiKey = req.headers.get("x-api-key");
 
-      if (!userId) {
-        throw new Error("User ID not found in request");
+      if (!userId || !apiKey) {
+        throw new Error("User authentication required");
       }
 
       // Get query parameters

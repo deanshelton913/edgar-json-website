@@ -1,7 +1,6 @@
 import { injectable, inject } from "tsyringe";
 import { NextRequest } from "next/server";
 import { UserDataAccess } from "@/services/data-access";
-import { CookieAuthorizerService } from "../authorizers/CookieAuthorizerService";
 import { ApiKeyService } from "../ApiKeyService";
 import { LoggingService } from "../LoggingService";
 import { FailureByDesign } from "@/lib/errors/FailureByDesign";
@@ -24,7 +23,6 @@ export interface ApiKeyPostResult {
 export class ApiKeyRouteService {
   constructor(
     @inject("LoggingService") private loggingService: LoggingService,
-    @inject("CookieAuthorizerService") private cookieAuthorizer: CookieAuthorizerService,
     @inject("UserDataAccess") private userDataAccess: UserDataAccess,
     @inject("ApiKeyService") private apiKeyService: ApiKeyService,
   ) {}
@@ -94,11 +92,11 @@ export class ApiKeyRouteService {
     try {
       this.loggingService.debug('[API_KEY_ROUTE] Handling GET request');
       
-      // Authorize the request using cookie authentication
-      const authResult = await this.cookieAuthorizer.authorizeRequest(request);
+      // Get user ID from middleware headers
+      const userId = request.headers.get('x-user-id');
+      const userEmail = request.headers.get('x-user-email');
 
-      if (!authResult.success) {
-        this.loggingService.debug('[API_KEY_ROUTE] Authentication failed:', authResult.error);
+      if (!userId) {
         return {
           success: false,
           error: 'Not authenticated',
@@ -106,14 +104,14 @@ export class ApiKeyRouteService {
         };
       }
 
-      this.loggingService.debug('[API_KEY_ROUTE] User ID from session:', authResult.userId);
-      this.loggingService.debug('[API_KEY_ROUTE] User email from session:', authResult.email);
+      this.loggingService.debug('[API_KEY_ROUTE] User ID from headers:', userId);
+      this.loggingService.debug('[API_KEY_ROUTE] User email from headers:', userEmail);
       
       // Get the user's database record using the numeric ID
-      const userData = await this.userDataAccess.getUserById(parseInt(authResult.userId!));
+      const userData = await this.userDataAccess.getUserById(parseInt(userId));
       
       if (!userData) {
-        this.loggingService.debug(`[API_KEY_ROUTE] User not found in database: ${authResult.userId}`);
+        this.loggingService.debug(`[API_KEY_ROUTE] User not found in database: ${userId}`);
         return {
           success: false,
           error: 'User not found',
@@ -157,11 +155,11 @@ export class ApiKeyRouteService {
     try {
       this.loggingService.debug('[API_KEY_ROUTE] Handling POST request');
       
-      // Authorize the request using cookie authentication
-      const authResult = await this.cookieAuthorizer.authorizeRequest(request);
+      // Get user ID from middleware headers
+      const userId = request.headers.get('x-user-id');
+      const userEmail = request.headers.get('x-user-email');
 
-      if (!authResult.success) {
-        this.loggingService.debug('[API_KEY_ROUTE] Authentication failed:', authResult.error);
+      if (!userId) {
         return {
           success: false,
           error: 'Not authenticated',
@@ -169,14 +167,14 @@ export class ApiKeyRouteService {
         };
       }
 
-      this.loggingService.debug('[API_KEY_ROUTE] User ID from session:', authResult.userId);
-      this.loggingService.debug('[API_KEY_ROUTE] User email from session:', authResult.email);
+      this.loggingService.debug('[API_KEY_ROUTE] User ID from headers:', userId);
+      this.loggingService.debug('[API_KEY_ROUTE] User email from headers:', userEmail);
       
       // Get the user's database record using the numeric ID
-      const userData = await this.userDataAccess.getUserById(parseInt(authResult.userId!));
+      const userData = await this.userDataAccess.getUserById(parseInt(userId));
       
       if (!userData) {
-        this.loggingService.debug(`[API_KEY_ROUTE] User not found in database: ${authResult.userId}`);
+        this.loggingService.debug(`[API_KEY_ROUTE] User not found in database: ${userId}`);
         return {
           success: false,
           error: 'User not found',
@@ -201,7 +199,7 @@ export class ApiKeyRouteService {
       // Create API key with tier information based on user's subscription
       const newApiKey = await this.apiKeyService.createApiKeyWithTier(
         userData.id,
-        authResult.email!
+        userEmail!
       );
 
       this.loggingService.debug('[API_KEY_ROUTE] Successfully created API key for user:', userData.id);

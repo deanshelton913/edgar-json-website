@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { container } from '@/lib/container';
+import { container } from '@/lib/container-server';
 import { ParseRouteService } from '@/services/routes/ParseRouteService';
 import { withRedisRouteHandlerResponse } from '@/lib/route-handler';
 

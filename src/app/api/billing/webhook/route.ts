@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { container } from '@/lib/container';
+import { container } from '@/lib/container-client';
 import { StripeService } from '@/services/stripe/StripeService';
 import { StripeWebhookEvent, WebhookService } from '@/services/stripe/WebhookService';
 import { LoggingService } from '@/services/LoggingService';

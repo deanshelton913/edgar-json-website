@@ -1,21 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { container } from '@/lib/container';
+import { container } from '@/lib/container-client';
 import { TosDataAccess } from '@/services/data-access/TosDataAccess';
 import { UserDataAccess } from '@/services/data-access/UserDataAccess';
-import { CookieAuthorizerService } from '@/services/authorizers/CookieAuthorizerService';
 import { handleRouteError } from '@/lib/errors';
 import { FailureByDesign } from '@/lib/errors/FailureByDesign';
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('[TOS_AGREE] Processing TOS agreement request');
+    // Get user ID from middleware headers
+    const userId = request.headers.get('x-user-id');
     
-    // Get the authenticated user's session using cookie authorization
-    const cookieAuthorizer = container.resolve(CookieAuthorizerService);
-    const authResult = await cookieAuthorizer.authorizeRequest(request);
-
-    if (!authResult.success) {
-      console.log('[TOS_AGREE] Authentication failed:', authResult.error);
+    if (!userId) {
       throw FailureByDesign.unauthorized('Please log in to agree to terms of service');
     }
 
@@ -25,15 +20,13 @@ export async function POST(request: NextRequest) {
     if (!tosVersion) {
       throw FailureByDesign.badRequest('TOS version is required');
     }
-
-    console.log(`[TOS_AGREE] User ${authResult.userId} agreeing to TOS version ${tosVersion}`);
     
     // Get the user's database record using the numeric ID
     const userDataAccess = container.resolve(UserDataAccess);
-    const userData = await userDataAccess.getUserById(parseInt(authResult.userId!));
+    const userData = await userDataAccess.getUserById(parseInt(userId));
     
     if (!userData) {
-      console.log(`[TOS_AGREE] User not found in database: ${authResult.userId}`);
+      console.log(`[TOS_AGREE] User not found in database: ${userId}`);
       throw FailureByDesign.notFound('User account not found. Please contact support.');
     }
     
@@ -86,31 +79,19 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('[TOS_AGREE] Getting TOS agreement status');
+    // Get user ID from middleware headers
+    const userId = request.headers.get('x-user-id');
     
-    // Log request details for debugging
-    const userAgent = request.headers.get('user-agent') || 'unknown';
-    const ipAddress = request.headers.get('x-forwarded-for') || 
-                     request.headers.get('x-real-ip') || 
-                     'unknown';
-    
-    console.log(`[TOS_AGREE] GET request from IP: ${ipAddress}, User-Agent: ${userAgent}`);
-    
-    // Get the authenticated user's session using cookie authorization
-    const cookieAuthorizer = container.resolve(CookieAuthorizerService);
-    const authResult = await cookieAuthorizer.authorizeRequest(request);
-
-    if (!authResult.success) {
-      console.log('[TOS_AGREE] Authentication failed:', authResult.error);
+    if (!userId) {
       throw FailureByDesign.unauthorized('Please log in to check terms of service status');
     }
 
     // Get the user's database record using the numeric ID
     const userDataAccess = container.resolve(UserDataAccess);
-    const userData = await userDataAccess.getUserById(parseInt(authResult.userId!));
+    const userData = await userDataAccess.getUserById(parseInt(userId));
     
     if (!userData) {
-      console.log(`[TOS_AGREE] User not found in database: ${authResult.userId}`);
+      console.log(`[TOS_AGREE] User not found in database: ${userId}`);
       throw FailureByDesign.notFound('User account not found. Please contact support.');
     }
     

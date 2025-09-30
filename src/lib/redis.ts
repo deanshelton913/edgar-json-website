@@ -1,4 +1,4 @@
-import { container } from "./container";
+import { container } from "./container-server";
 import { RedisConnectionManager } from "@/services/RedisConnectionManager";
 import { LoggingService } from "@/services/LoggingService";
 import { RedisClientType } from "redis";

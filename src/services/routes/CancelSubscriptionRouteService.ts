@@ -1,6 +1,5 @@
 import { injectable, inject } from "tsyringe";
 import { NextRequest } from "next/server";
-import { CookieAuthorizerService } from "../authorizers/CookieAuthorizerService";
 import { StripeService } from "../stripe/StripeService";
 import { SubscriptionDataAccess } from "../data-access/SubscriptionDataAccess";
 import { LoggingService } from "../LoggingService";
@@ -15,7 +14,6 @@ export interface CancelSubscriptionResult {
 export class CancelSubscriptionRouteService {
   constructor(
     @inject("LoggingService") private loggingService: LoggingService,
-    @inject("CookieAuthorizerService") private cookieAuthorizer: CookieAuthorizerService,
     @inject("StripeService") private stripeService: StripeService,
     @inject("SubscriptionDataAccess") private subscriptionDataAccess: SubscriptionDataAccess,
   ) {}
@@ -35,21 +33,13 @@ export class CancelSubscriptionRouteService {
       
       this.loggingService.debug(`[CANCEL_SUBSCRIPTION_ROUTE] Request from IP: ${ipAddress}, User-Agent: ${userAgent}`);
 
-      // Authenticate user
-      const authResult = await this.cookieAuthorizer.authorizeRequest(request);
+      // Get user ID from middleware headers
+      const userId = request.headers.get('x-user-id');
       
-      if (!authResult.success) {
-        return {
-          success: false,
-          error: 'Authentication required'
-        };
-      }
-
-      const userId = authResult.userId;
       if (!userId) {
         return {
           success: false,
-          error: 'User ID not found'
+          error: 'Authentication required'
         };
       }
 

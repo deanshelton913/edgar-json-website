@@ -1,6 +1,5 @@
 import { injectable, inject } from "tsyringe";
 import { NextRequest } from "next/server";
-import { CookieAuthorizerService } from "../authorizers/CookieAuthorizerService";
 import { SubscriptionDataAccess } from "../data-access/SubscriptionDataAccess";
 import { LoggingService } from "../LoggingService";
 import { FailureByDesign } from "@/lib/errors/FailureByDesign";
@@ -19,7 +18,6 @@ export interface BillingSubscriptionResult {
 export class BillingSubscriptionRouteService {
   constructor(
     @inject("LoggingService") private loggingService: LoggingService,
-    @inject("CookieAuthorizerService") private cookieAuthorizer: CookieAuthorizerService,
     @inject("SubscriptionDataAccess") private subscriptionDataAccess: SubscriptionDataAccess,
   ) {}
 
@@ -38,15 +36,14 @@ export class BillingSubscriptionRouteService {
       
       this.loggingService.debug(`[BILLING_SUBSCRIPTION_ROUTE] Request from IP: ${ipAddress}, User-Agent: ${userAgent}`);
 
-      // Authorize the request using cookie-based authentication
-      const authResult = await this.cookieAuthorizer.authorizeRequest(request);
+      // Get user ID from middleware headers
+      const userId = request.headers.get('x-user-id');
 
-      if (!authResult.success) {
+      if (!userId) {
         this.loggingService.warn('[BILLING_SUBSCRIPTION_ROUTE] Unauthorized request');
-        throw FailureByDesign.unauthorized(authResult.message || 'Authentication required');
+        throw FailureByDesign.unauthorized('Authentication required');
       }
 
-      const userId = authResult.userId!;
       this.loggingService.debug(`[BILLING_SUBSCRIPTION_ROUTE] Getting subscription for user: ${userId}`);
 
       // Convert string ID to number for database operations

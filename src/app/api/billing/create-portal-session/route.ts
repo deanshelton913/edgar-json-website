@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { container } from '@/lib/container';
+import { container } from '@/lib/container-client';
 import { CreatePortalSessionRouteService } from '@/services/routes/CreatePortalSessionRouteService';
 import { handleRouteError } from '@/lib/errors';
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { container } from '@/lib/container';
+import { container } from '@/lib/container-client';
 import { CreateCheckoutSessionRouteService } from '@/services/routes/CreateCheckoutSessionRouteService';
 import { handleRouteError } from '@/lib/errors';
 

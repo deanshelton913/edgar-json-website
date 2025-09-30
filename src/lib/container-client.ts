@@ -1,14 +1,20 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
+
+// This is a Redis-free container that can be safely bundled for client-side
+// Redis services are completely excluded
+
+// Import core services
 import { LoggingService } from "@/services/LoggingService";
 import { HttpService } from "@/services/HttpService";
 import { RssService } from "@/services/RssService";
+import { CredentialCachingService } from "@/services/CredentialCachingService";
+
 // Import data access services
 import { UserDataAccess, ApiKeyDataAccess, UsageDataAccess, TosDataAccess, SubscriptionDataAccess } from "@/services/data-access";
 import { UserComplianceService } from "@/services/UserComplianceService";
 import { PlanConfigurationService } from "@/services/PlanConfigurationService";
 import { ApiKeyService } from "@/services/ApiKeyService";
-import { CredentialCachingService } from "@/services/CredentialCachingService";
 
 // Import parsing services
 import { SecParserService } from "@/services/parsing/SecParserService";
@@ -33,22 +39,14 @@ import { ApiKeyAuthorizerService } from "@/services/authorizers/ApiKeyAuthorizer
 import { CookieAuthorizerService } from "@/services/authorizers/CookieAuthorizerService";
 import { GoogleAuthenticationService } from "@/services/authorizers/GoogleAuthenticationService";
 
-// Import rate limiting services
-import { RedisRateLimitService } from "@/services/rate-limiting/RedisRateLimitService";
-import { UsageTrackingService } from "@/services/rate-limiting/UsageTrackingService";
-import { ApiKeyCacheService } from "@/services/ApiKeyCacheService";
-import { RedisConnectionManager } from "@/services/RedisConnectionManager";
-
 // Import stripe services
 import { StripeService } from "@/services/stripe/StripeService";
 import { WebhookService } from "@/services/stripe/WebhookService";
 
-// Import route services
-import { ParseRouteService } from "@/services/routes/ParseRouteService";
+// Import route services (Redis-free versions)
+// FilingsRouteService and UsageStatsRouteService are in server-container.ts (depend on Redis)
 import { ApiKeyRouteService } from "@/services/routes/ApiKeyRouteService";
-import { FilingsRouteService } from "@/services/routes/FilingsRouteService";
 import { ApiKeyDeleteRouteService } from "@/services/routes/ApiKeyDeleteRouteService";
-import { UsageStatsRouteService } from "@/services/routes/UsageStatsRouteService";
 import { AuthUserRouteService } from "@/services/routes/AuthUserRouteService";
 import { LogoutRouteService } from "@/services/routes/LogoutRouteService";
 import { AuthCallbackRouteService } from "@/services/routes/AuthCallbackRouteService";
@@ -72,6 +70,8 @@ container.register("ApiKeyDataAccess", { useClass: ApiKeyDataAccess });
 container.register("UsageDataAccess", { useClass: UsageDataAccess });
 container.register("TosDataAccess", { useClass: TosDataAccess });
 container.register("SubscriptionDataAccess", { useClass: SubscriptionDataAccess });
+container.register("PlanConfigurationService", { useClass: PlanConfigurationService });
+container.register("ApiKeyService", { useClass: ApiKeyService });
 
 // Register parsing services
 container.register("SecParserService", { useClass: SecParserService });
@@ -97,26 +97,14 @@ container.register("CookieAuthorizerService", { useClass: CookieAuthorizerServic
 container.register("GoogleAuthenticationService", { useClass: GoogleAuthenticationService });
 container.register("UserComplianceService", { useClass: UserComplianceService });
 
-// Register rate limiting services
-container.register("RedisRateLimitService", { useClass: RedisRateLimitService });
-container.register("UsageTrackingService", { useClass: UsageTrackingService });
-container.register("ApiKeyCacheService", { useClass: ApiKeyCacheService });
-container.register("RedisConnectionManager", { useClass: RedisConnectionManager });
-
 // Register stripe services
 container.register("StripeService", { useClass: StripeService });
 container.register("WebhookService", { useClass: WebhookService });
 
-// Register business services
-container.register("PlanConfigurationService", { useClass: PlanConfigurationService });
-container.register("ApiKeyService", { useClass: ApiKeyService });
-
 // Register route services
-container.register("ParseRouteService", { useClass: ParseRouteService });
 container.register("ApiKeyRouteService", { useClass: ApiKeyRouteService });
-container.register("FilingsRouteService", { useClass: FilingsRouteService });
+// FilingsRouteService and UsageStatsRouteService are in server-container.ts
 container.register("ApiKeyDeleteRouteService", { useClass: ApiKeyDeleteRouteService });
-container.register("UsageStatsRouteService", { useClass: UsageStatsRouteService });
 container.register("AuthUserRouteService", { useClass: AuthUserRouteService });
 container.register("LogoutRouteService", { useClass: LogoutRouteService });
 container.register("AuthCallbackRouteService", { useClass: AuthCallbackRouteService });
@@ -127,8 +115,5 @@ container.register("CreatePortalSessionRouteService", { useClass: CreatePortalSe
 container.register("DowngradeCanceledRouteService", { useClass: DowngradeCanceledRouteService });
 container.register("BillingSubscriptionRouteService", { useClass: BillingSubscriptionRouteService });
 container.register("ReactivateSubscriptionRouteService", { useClass: ReactivateSubscriptionRouteService });
-
-// Initialize Redis connection manager to setup shutdown handlers
-container.resolve(RedisConnectionManager);
 
 export { container };

@@ -1,6 +1,5 @@
 import { injectable, inject } from "tsyringe";
 import { NextRequest } from "next/server";
-import { CookieAuthorizerService } from "../authorizers/CookieAuthorizerService";
 import { StripeService } from "../stripe/StripeService";
 import { LoggingService } from "../LoggingService";
 
@@ -15,7 +14,6 @@ export interface CreateCheckoutSessionResult {
 export class CreateCheckoutSessionRouteService {
   constructor(
     @inject("LoggingService") private loggingService: LoggingService,
-    @inject("CookieAuthorizerService") private cookieAuthorizer: CookieAuthorizerService,
     @inject("StripeService") private stripeService: StripeService,
   ) {}
 
@@ -26,15 +24,16 @@ export class CreateCheckoutSessionRouteService {
     try {
       this.loggingService.debug('[CREATE_CHECKOUT_ROUTE] Starting create checkout session request');
 
-      // Authorize the request using cookie-based authentication
-      const authResult = await this.cookieAuthorizer.authorizeRequest(request);
+      // Get user ID from middleware headers
+      const userId = request.headers.get('x-user-id');
+      const userEmail = request.headers.get('x-user-email');
 
-      if (!authResult.success) {
+      if (!userId || !userEmail) {
         this.loggingService.warn('[CREATE_CHECKOUT_ROUTE] Unauthorized request');
         return {
           success: false,
           error: 'Unauthorized',
-          message: authResult.message
+          message: 'Authentication required'
         };
       }
 
@@ -56,17 +55,7 @@ export class CreateCheckoutSessionRouteService {
         };
       }
 
-      const userId = authResult.userId!;
       this.loggingService.debug(`[CREATE_CHECKOUT_ROUTE] Creating checkout session for user: ${userId}, plan: ${planId}`);
-
-      // Get user email from the auth result
-      const userEmail = authResult.email;
-      if (!userEmail) {
-        return {
-          success: false,
-          error: 'User email not found'
-        };
-      }
 
       // Determine the correct base URL using environment variables
       const isVercel = process.env.VERCEL === '1';

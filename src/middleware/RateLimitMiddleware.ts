@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { container } from "@/lib/container";
+import { container } from "@/lib/container-server";
 import { UsageTrackingService } from "@/services/rate-limiting/UsageTrackingService";
 import { ApiKeyAuthorizerService } from "@/services/authorizers/ApiKeyAuthorizerService";
 import { LoggingService } from "@/services/LoggingService";

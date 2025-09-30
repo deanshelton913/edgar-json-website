@@ -1,6 +1,5 @@
 import { injectable, inject } from "tsyringe";
 import { NextRequest, NextResponse } from "next/server";
-import { CookieAuthorizerService } from "../authorizers/CookieAuthorizerService";
 import { UsageTrackingService } from "../rate-limiting/UsageTrackingService";
 import { LoggingService } from "../LoggingService";
 import { ApiKeyDataAccess } from "../data-access/ApiKeyDataAccess";
@@ -24,7 +23,6 @@ export interface UsageStatsResponse {
 export class UsageStatsRouteService {
   constructor(
     @inject("LoggingService") private loggingService: LoggingService,
-    @inject("CookieAuthorizerService") private cookieAuthorizer: CookieAuthorizerService,
     @inject("UsageTrackingService") private usageTrackingService: UsageTrackingService,
     @inject("ApiKeyDataAccess") private apiKeyDataAccess: ApiKeyDataAccess,
   ) {}
@@ -38,10 +36,10 @@ export class UsageStatsRouteService {
     try {
       this.loggingService.debug('[USAGE_STATS_ROUTE] Starting usage stats request');
 
-      // Authenticate using cookie-based authentication
-      const authResult = await this.cookieAuthorizer.authorizeRequest(request);
+      // Get user ID from middleware headers
+      const userId = request.headers.get('x-user-id');
 
-      if (!authResult.success) {
+      if (!userId) {
         return this.createErrorResponse(
           'Authentication required',
           'Please log in to access usage statistics',
@@ -50,7 +48,7 @@ export class UsageStatsRouteService {
         );
       }
 
-      const userDbId = parseInt(authResult.userId!);
+      const userDbId = parseInt(userId);
       
       // Get user's API key
       const apiKeyData = await this.apiKeyDataAccess.getApiKeyByUserId(userDbId);

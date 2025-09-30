@@ -1,6 +1,5 @@
 import { injectable, inject } from "tsyringe";
 import { NextRequest } from "next/server";
-import { CookieAuthorizerService } from "../authorizers/CookieAuthorizerService";
 import { StripeService } from "../stripe/StripeService";
 import { LoggingService } from "../LoggingService";
 
@@ -15,7 +14,6 @@ export interface CreatePortalSessionResult {
 export class CreatePortalSessionRouteService {
   constructor(
     @inject("LoggingService") private loggingService: LoggingService,
-    @inject("CookieAuthorizerService") private cookieAuthorizer: CookieAuthorizerService,
     @inject("StripeService") private stripeService: StripeService,
   ) {}
 
@@ -34,19 +32,18 @@ export class CreatePortalSessionRouteService {
       
       this.loggingService.debug(`[CREATE_PORTAL_ROUTE] Request from IP: ${ipAddress}, User-Agent: ${userAgent}`);
 
-      // Authorize the request using cookie-based authentication
-      const authResult = await this.cookieAuthorizer.authorizeRequest(request);
+      // Get user ID from middleware headers
+      const userId = request.headers.get('x-user-id');
 
-      if (!authResult.success) {
+      if (!userId) {
         this.loggingService.warn('[CREATE_PORTAL_ROUTE] Unauthorized request');
         return {
           success: false,
           error: 'Unauthorized',
-          message: authResult.message
+          message: 'Authentication required'
         };
       }
 
-      const userId = authResult.userId!;
       this.loggingService.debug(`[CREATE_PORTAL_ROUTE] Creating portal session for user: ${userId}`);
 
       // Get or create default portal configuration

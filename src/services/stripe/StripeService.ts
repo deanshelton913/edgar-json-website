@@ -149,7 +149,7 @@ export class StripeService {
           const customer = await this.stripe.customers.retrieve(user.stripeCustomerId) as Stripe.Customer;
           this.loggingService.debug(`[STRIPE_SERVICE] Retrieved existing customer: ${customer.id} for user: ${userId}`);
           return customer;
-        } catch (error) {
+        } catch {
           this.loggingService.warn(`[STRIPE_SERVICE] Failed to retrieve customer ${user.stripeCustomerId}, creating new one`);
           // Customer might be deleted in Stripe, fall through to create new one
         }
