@@ -49,6 +49,7 @@ export const users = pgTable('users', {
   providerId: varchar('provider_id', { length: 255 }),
   stripeCustomerId: varchar('stripe_customer_id', { length: 255 }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
   lastLoginAt: timestamp('last_login_at'),
   isActive: boolean('is_active').default(true).notNull(),
 });
@@ -107,6 +108,7 @@ export const usersGoogleIdIndex = users.googleId;
 export const usersCuidIndex = users.cuid;
 export const usersEmailIndex = users.email;
 export const usersStripeCustomerIdIndex = users.stripeCustomerId;
+export const usersUpdatedAtIndex = users.updatedAt;
 export const tosAgreementsUserIdIndex = tosAgreements.userId;
 export const tosAgreementsCuidIndex = tosAgreements.cuid;
 export const tosAgreementsAgreedAtIndex = tosAgreements.agreedAt;

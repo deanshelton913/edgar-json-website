@@ -53,7 +53,7 @@ export class UserDataAccess {
           providerId: newUser.providerId || undefined,
           lastLoginAt: newUser.lastLoginAt || undefined,
           createdAt: newUser.createdAt || undefined,
-          updatedAt: undefined,
+          updatedAt: newUser.updatedAt,
         } };
       } else {
         // Update existing user
@@ -62,6 +62,7 @@ export class UserDataAccess {
             email: email,
             name: name || null,
             lastLoginAt: new Date(),
+            updatedAt: new Date(),
           })
           .where(eq(users.googleId, googleId))
           .returning();
@@ -77,7 +78,7 @@ export class UserDataAccess {
           providerId: updatedUser.providerId || undefined,
           lastLoginAt: updatedUser.lastLoginAt || undefined,
           createdAt: updatedUser.createdAt || undefined,
-          updatedAt: undefined,
+          updatedAt: updatedUser.updatedAt,
         } };
       }
     } catch (error) {
@@ -175,7 +176,10 @@ export class UserDataAccess {
   async updateStripeCustomerId(userId: number, stripeCustomerId: string): Promise<void> {
     try {
       await db.update(users)
-        .set({ stripeCustomerId })
+        .set({ 
+          stripeCustomerId,
+          updatedAt: new Date(),
+        })
         .where(eq(users.id, userId));
       
       this.loggingService.debug(`[USER_DATA_ACCESS] Updated Stripe customer ID for user ${userId}: ${stripeCustomerId}`);
