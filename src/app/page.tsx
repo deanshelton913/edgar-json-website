@@ -372,20 +372,6 @@ FILER:
 								</div>
 							</div>
 						</div>
-						<div className="text-center mt-8">
-							<div className="inline-flex items-center gap-4 bg-gradient-to-r from-green-100 to-emerald-100 rounded-2xl p-6 border-2 border-green-200">
-								<div className="text-4xl">💰</div>
-								<div>
-									<p className="text-3xl font-black text-green-600 mb-1">
-										Save 75-80% on AI processing costs!
-									</p>
-									<p className="text-sm text-gray-600">
-										Sources: <a href="https://openai.com/pricing" target="_blank" rel="noopener noreferrer" className="underline hover:text-green-600">OpenAI API Pricing</a> | 
-										<a href="https://www.sec.gov/newsroom/speeches-statements/lee-structured-data-2020-11-17" target="_blank" rel="noopener noreferrer" className="underline ml-1 hover:text-green-600">SEC Structured Data Benefits</a>
-									</p>
-								</div>
-							</div>
-						</div>
 					</div>
 				</div>
 
@@ -418,7 +404,7 @@ FILER:
 							Real-Time Analysis
 						</h3>
 						<p className="text-gray-700 text-center leading-relaxed">
-							Process filings instantly as they're published. Perfect for AI-powered trading algorithms and research tools.
+							Process filings instantly as they&apos;re published. Perfect for AI-powered trading algorithms and research tools.
 						</p>
 						<div className="mt-4 flex justify-center">
 							<div className="bg-green-50 text-green-600 px-4 py-2 rounded-full text-sm font-semibold">
